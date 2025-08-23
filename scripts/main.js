@@ -26,6 +26,9 @@ Hooks.once('init', async function() {
   MapHeightEditor.isActive = false;
   MapHeightEditor.currentBrushHeight = 0;
   
+  // Register custom canvas layer
+  registerCanvasLayer();
+  
   console.log(`${MODULE_TITLE} | Module initialized successfully`);
 });
 
@@ -60,8 +63,19 @@ Hooks.once('ready', async function() {
 Hooks.on('canvasReady', async function() {
   if (!game.user.isGM) return;
   
-  console.log(`${MODULE_TITLE} | Canvas ready, initializing height overlay`);
-  // Height overlay will be initialized here
+  console.log(`${MODULE_TITLE} | Canvas ready, reinitializing components for new scene`);
+  
+  // Reinitialize height manager for the new scene
+  if (MapHeightEditor.heightManager) {
+    MapHeightEditor.heightManager.initialize(canvas.scene);
+  }
+  
+  // Reinitialize height overlay
+  if (MapHeightEditor.heightOverlay) {
+    MapHeightEditor.heightOverlay.updateGridParameters();
+  }
+  
+  console.log(`${MODULE_TITLE} | Components reinitialized for scene: ${canvas.scene?.name}`);
 });
 
 /**
@@ -75,7 +89,7 @@ Hooks.on('getSceneControlButtons', (controls) => {
     name: "mapheight",
     title: "Map Height Editor",
     icon: "fas fa-mountain",
-    layer: "mapheight",
+    layer: "mapheight", // Use our custom layer
     tools: [
       {
         name: "height-sidebar",
@@ -102,7 +116,7 @@ Hooks.on('getSceneControlButtons', (controls) => {
       {
         name: "height-brush-5",
         title: "Height 5",
-        icon: "fas fa-hill",
+        icon: "fas fa-leaf",
         onClick: () => setBrushHeight(5),
         active: MapHeightEditor.currentBrushHeight === 5
       },
@@ -120,16 +134,26 @@ Hooks.on('getSceneControlButtons', (controls) => {
 });
 
 /**
- * Token update hook - handle automatic height updates
- * Token更新钩子 - 处理自动高度更新
+ * Register custom canvas layer
+ * 注册自定义canvas层
  */
-Hooks.on('updateToken', async (tokenDocument, change, options, userId) => {
-  // Only process position changes and only for GMs
-  if (!game.user.isGM || !('x' in change || 'y' in change)) return;
-  
-  // Automatic height update will be implemented here
-  console.log(`${MODULE_TITLE} | Token moved, checking height update`);
-});
+async function registerCanvasLayer() {
+  try {
+    // Import the custom layer
+    const HeightLayer = await import('./ui/height-layer.js');
+    MapHeightEditor.HeightLayer = HeightLayer.default;
+    
+    // Register the layer with FVTT
+    CONFIG.Canvas.layers.mapheight = {
+      layerClass: HeightLayer.default,
+      group: "interface"
+    };
+    
+    console.log(`${MODULE_TITLE} | Custom canvas layer registered`);
+  } catch (error) {
+    console.error(`${MODULE_TITLE} | Error registering canvas layer:`, error);
+  }
+}
 
 /**
  * Register module configuration settings
@@ -193,6 +217,8 @@ async function loadModuleComponents() {
     const HeightOverlay = await import('./ui/height-overlay.js');
     MapHeightEditor.HeightOverlay = HeightOverlay.default;
     
+    // HeightLayer is already imported during init in registerCanvasLayer()
+    
     // const BrushTools = await import('./ui/brush-tools.js');
     
   } catch (error) {
@@ -209,7 +235,12 @@ function initializeGMInterface() {
   
   // Initialize height manager
   MapHeightEditor.heightManager = new MapHeightEditor.HeightManager();
-  MapHeightEditor.heightManager.initialize();
+  const initialized = MapHeightEditor.heightManager.initialize();
+  
+  if (!initialized) {
+    console.error(`${MODULE_TITLE} | Failed to initialize height manager`);
+    return;
+  }
   
   // Initialize token automation
   MapHeightEditor.tokenAutomation = new MapHeightEditor.TokenAutomation(MapHeightEditor.heightManager);
@@ -222,6 +253,8 @@ function initializeGMInterface() {
   
   // Set default brush height from settings
   MapHeightEditor.currentBrushHeight = game.settings.get(MODULE_ID, "defaultBrushHeight");
+  
+  console.log(`${MODULE_TITLE} | GM interface initialized successfully`);
 }
 
 /**
@@ -237,6 +270,10 @@ function toggleHeightEditMode() {
     if (MapHeightEditor.sidebar) {
       MapHeightEditor.sidebar.render(true);
     }
+    // Enable height edit mode on the custom layer
+    if (canvas.mapheight) {
+      canvas.mapheight.enableHeightEditMode();
+    }
     // Show height overlay
     showHeightOverlay();
   } else {
@@ -244,6 +281,10 @@ function toggleHeightEditMode() {
     // Hide sidebar
     if (MapHeightEditor.sidebar) {
       MapHeightEditor.sidebar.close();
+    }
+    // Disable height edit mode on the custom layer
+    if (canvas.mapheight) {
+      canvas.mapheight.disableHeightEditMode();
     }
     // Hide height overlay
     hideHeightOverlay();

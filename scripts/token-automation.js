@@ -49,26 +49,52 @@ export default class TokenAutomation {
    * 处理Token更新（移动等）
    */
   async onTokenUpdate(tokenDocument, changes, options, userId) {
+    console.log(`${MODULE_ID} | Token update triggered for "${tokenDocument.name}":`, changes);
+    
     // Only process if auto-update is enabled
     if (!this.isEnabled || !game.settings.get(MODULE_ID, "autoUpdateTokens")) {
+      console.log(`${MODULE_ID} | Token automation disabled - skipping update`);
       return;
     }
 
     // Only process position changes
     if (!('x' in changes || 'y' in changes)) {
+      console.log(`${MODULE_ID} | No position change detected - skipping update`);
       return;
     }
 
     // Only process for GMs or if user controls the token
     if (!game.user.isGM && !tokenDocument.isOwner) {
+      console.log(`${MODULE_ID} | User not GM and doesn't own token - skipping update`);
       return;
     }
 
     // Don't process if token is in exception list
     if (this.heightManager.isExceptionToken(tokenDocument.id)) {
+      console.log(`${MODULE_ID} | Token in exception list - skipping update`);
       return;
     }
 
+    // Calculate old position correctly - changes contains the delta, not absolute position  
+    const newX = tokenDocument.x;
+    const newY = tokenDocument.y;
+    const deltaX = changes.x || 0;
+    const deltaY = changes.y || 0;
+    const oldX = newX - deltaX;
+    const oldY = newY - deltaY;
+    
+    const distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+    const gridSize = canvas.grid.size;
+    const maxReasonableDistance = gridSize * 10; // Allow up to 10 grid squares per update
+    
+    if (distance > maxReasonableDistance) {
+      console.warn(`${MODULE_ID} | Large movement detected (${distance.toFixed(1)}px), might be teleport/glitch - processing anyway but flagging`);
+    }
+    
+    console.log(`${MODULE_ID} | Movement delta: (${deltaX}, ${deltaY}), distance: ${distance.toFixed(1)}px`);
+    console.log(`${MODULE_ID} | Position: (${oldX}, ${oldY}) → (${newX}, ${newY})`);
+    console.log(`${MODULE_ID} | Queuing token update for "${tokenDocument.name}"`);
+    
     // Add to update queue with throttling
     this.queueTokenUpdate(tokenDocument);
   }
@@ -201,6 +227,7 @@ export default class TokenAutomation {
     try {
       // Skip if token is in exception list
       if (this.heightManager.isExceptionToken(tokenDocument.id)) {
+        console.log(`${MODULE_ID} | Skipping token "${tokenDocument.name}" - in exception list`);
         return;
       }
 
@@ -214,6 +241,8 @@ export default class TokenAutomation {
       // Get height for this grid position
       const newHeight = this.heightManager.getGridHeight(position.i, position.j);
       const currentHeight = tokenDocument.elevation || 0;
+
+      console.log(`${MODULE_ID} | Token "${tokenDocument.name}" at grid (${position.i}, ${position.j}): current=${currentHeight}, grid height=${newHeight}`);
 
       // Only update if height has changed
       if (currentHeight !== newHeight) {

@@ -6,10 +6,10 @@
 const MODULE_ID = "fvtt-map-height";
 
 /**
- * MapHeightSidebar class - ApplicationV2-based sidebar control
- * 地图高度侧边栏类 - 基于ApplicationV2的侧边栏控件
+ * MapHeightSidebar class - Application-based sidebar control
+ * 地图高度侧边栏类 - 基于Application的侧边栏控件
  */
-export default class MapHeightSidebar extends foundry.applications.api.ApplicationV2 {
+export default class MapHeightSidebar extends Application {
   
   constructor(heightManager, options = {}) {
     super(options);
@@ -23,44 +23,28 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
    * Default application options
    * 默认应用程序选项
    */
-  static DEFAULT_OPTIONS = {
-    id: "map-height-sidebar",
-    classes: ["map-height-sidebar"],
-    tag: "form",
-    window: {
-      title: "MAP_HEIGHT.ModuleTitle",
-      icon: "fas fa-mountain",
-      minimizable: true,
-      resizable: false
-    },
-    position: {
-      width: 300,
+  static get defaultOptions() {
+    return foundry.utils.mergeObject(super.defaultOptions, {
+      id: "map-height-sidebar",
+      classes: ["map-height-sidebar"],
+      title: "Map Height Editor",
+      template: "modules/fvtt-map-height/templates/sidebar-control.hbs",
+      width: 320,
       height: "auto",
       left: 120,
-      top: 150
-    },
-    form: {
-      handler: MapHeightSidebar.formHandler,
+      top: 150,
+      minimizable: true,
+      resizable: false,
       submitOnChange: false,
       closeOnSubmit: false
-    }
-  };
-
-  /**
-   * HTML template for the sidebar
-   * 侧边栏的HTML模板
-   */
-  static PARTS = {
-    form: {
-      template: "modules/fvtt-map-height/templates/sidebar-control.hbs"
-    }
-  };
+    });
+  }
 
   /**
    * Prepare data for rendering
    * 准备渲染数据
    */
-  async _prepareContext(options) {
+  getData(options) {
     const context = {
       isGM: game.user.isGM,
       isEditMode: this.isEditMode,
@@ -73,7 +57,7 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
       // Predefined brush heights
       brushHeights: [
         { value: 0, label: "Water", icon: "fas fa-water", color: "#4FC3F7" },
-        { value: 5, label: "Ground", icon: "fas fa-seedling", color: "#81C784" },
+        { value: 5, label: "Ground", icon: "fas fa-leaf", color: "#81C784" },
         { value: 10, label: "Hill", icon: "fas fa-mountain", color: "#FFB74D" },
         { value: 15, label: "High", icon: "fas fa-mountain", color: "#F06292" },
         { value: 20, label: "Peak", icon: "fas fa-mountain", color: "#9575CD" }
@@ -117,47 +101,46 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
    * Event listeners for the sidebar
    * 侧边栏的事件监听器
    */
-  _attachFrameListeners() {
-    super._attachFrameListeners();
+  activateListeners(html) {
+    super.activateListeners(html);
     
-    const html = this.element;
+    // Convert jQuery to DOM element if needed
+    const element = html[0] || html;
     
     // Edit mode toggle
-    html.querySelector('[data-action="toggle-edit-mode"]')?.addEventListener('click', 
+    html.find('[data-action="toggle-edit-mode"]').on('click', 
       this._onToggleEditMode.bind(this));
     
     // Brush height selection
-    html.querySelectorAll('[data-action="select-brush"]').forEach(btn => {
-      btn.addEventListener('click', this._onSelectBrush.bind(this));
-    });
+    html.find('[data-action="select-brush"]').on('click', 
+      this._onSelectBrush.bind(this));
     
     // Custom height input
-    html.querySelector('[data-action="set-custom-height"]')?.addEventListener('click', 
+    html.find('[data-action="set-custom-height"]').on('click', 
       this._onSetCustomHeight.bind(this));
     
     // Clear all heights
-    html.querySelector('[data-action="clear-all"]')?.addEventListener('click', 
+    html.find('[data-action="clear-all"]').on('click', 
       this._onClearAll.bind(this));
     
     // Export/Import
-    html.querySelector('[data-action="export-data"]')?.addEventListener('click', 
+    html.find('[data-action="export-data"]').on('click', 
       this._onExportData.bind(this));
-    html.querySelector('[data-action="import-data"]')?.addEventListener('click', 
+    html.find('[data-action="import-data"]').on('click', 
       this._onImportData.bind(this));
     
     // Exception management
-    html.querySelectorAll('[data-action="remove-exception"]').forEach(btn => {
-      btn.addEventListener('click', this._onRemoveException.bind(this));
-    });
+    html.find('[data-action="remove-exception"]').on('click', 
+      this._onRemoveException.bind(this));
     
     // Add selected token as exception
-    html.querySelector('[data-action="add-exception"]')?.addEventListener('click', 
+    html.find('[data-action="add-exception"]').on('click', 
       this._onAddException.bind(this));
     
     // Settings changes
-    html.querySelector('[name="autoUpdate"]')?.addEventListener('change', 
+    html.find('[name="autoUpdate"]').on('change', 
       this._onSettingChange.bind(this));
-    html.querySelector('[name="overlayOpacity"]')?.addEventListener('input', 
+    html.find('[name="overlayOpacity"]').on('input', 
       this._onOpacityChange.bind(this));
   }
 
@@ -189,9 +172,10 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
    * Select brush height
    * 选择画笔高度
    */
-  _onSelectBrush(event) {
+   _onSelectBrush(event) {
     event.preventDefault();
-    const height = parseInt(event.currentTarget.dataset.height);
+    const $target = $(event.currentTarget);
+    const height = parseInt($target.data('height'));
     this.currentBrushHeight = height;
     window.MapHeightEditor.currentBrushHeight = height;
     
@@ -210,7 +194,8 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
   async _onSetCustomHeight(event) {
     event.preventDefault();
     
-    const customHeight = parseInt(this.element.querySelector('[name="customHeight"]').value);
+    const $form = this.element;
+    const customHeight = parseInt($form.find('[name="customHeight"]').val());
     
     if (isNaN(customHeight) || !this.heightManager.validateHeight(customHeight)) {
       ui.notifications.warn("Invalid height value. Must be between -1000 and 1000.");
@@ -325,7 +310,8 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
   async _onRemoveException(event) {
     event.preventDefault();
     
-    const tokenId = event.currentTarget.dataset.tokenId;
+    const $target = $(event.currentTarget);
+    const tokenId = $target.data('token-id');
     const success = await this.heightManager.removeTokenException(tokenId);
     
     if (success) {
@@ -339,8 +325,9 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
    * 处理设置变化
    */
   async _onSettingChange(event) {
-    const setting = event.target.name;
-    const value = event.target.checked;
+    const $target = $(event.target);
+    const setting = $target.attr('name');
+    const value = $target.is(':checked');
     
     await game.settings.set(MODULE_ID, setting, value);
     
@@ -354,7 +341,8 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
    * 处理透明度滑块变化
    */
   async _onOpacityChange(event) {
-    const opacity = parseFloat(event.target.value);
+    const $target = $(event.target);
+    const opacity = parseFloat($target.val());
     await game.settings.set(MODULE_ID, "overlayOpacity", opacity);
     
     // Update overlay if visible
@@ -394,14 +382,6 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
     }
   }
 
-  /**
-   * Form submission handler
-   * 表单提交处理器
-   */
-  static async formHandler(event, form, formData) {
-    // Handle form submission if needed
-    console.log("Form submitted:", formData);
-  }
 
   /**
    * Refresh sidebar data

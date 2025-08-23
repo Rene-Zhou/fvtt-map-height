@@ -82,8 +82,15 @@ export default class HeightOverlay extends PIXI.Container {
     if (!canvas || !canvas.grid) return;
     
     this.gridSize = canvas.grid.size;
-    this.gridOffsetX = canvas.grid.options.offsetX || 0;
-    this.gridOffsetY = canvas.grid.options.offsetY || 0;
+    // Handle different Foundry VTT versions for grid offset
+    if (canvas.grid.options) {
+      this.gridOffsetX = canvas.grid.options.offsetX || 0;
+      this.gridOffsetY = canvas.grid.options.offsetY || 0;
+    } else {
+      // Newer FVTT versions may not have options, use grid object directly
+      this.gridOffsetX = canvas.grid.x || 0;
+      this.gridOffsetY = canvas.grid.y || 0;
+    }
     
     console.log(`${MODULE_ID} | Grid parameters updated: size=${this.gridSize}, offset=(${this.gridOffsetX}, ${this.gridOffsetY})`);
   }
@@ -135,7 +142,7 @@ export default class HeightOverlay extends PIXI.Container {
    * 更新视口边界以进行性能优化
    */
   updateViewport() {
-    if (!canvas || !canvas.stage) return;
+    if (!canvas || !canvas.stage || !canvas.scene) return;
     
     const stage = canvas.stage;
     const bounds = canvas.app.renderer.screen;
@@ -144,11 +151,24 @@ export default class HeightOverlay extends PIXI.Container {
     const transform = stage.transform.worldTransform;
     const scale = transform.a; // Assuming uniform scaling
     
+    // Get scene dimensions
+    const sceneWidth = canvas.scene.width;
+    const sceneHeight = canvas.scene.height;
+    const sceneCols = Math.ceil(sceneWidth / this.gridSize);
+    const sceneRows = Math.ceil(sceneHeight / this.gridSize);
+    
+    // Calculate viewport bounds
+    const viewportLeft = Math.floor((-transform.tx / scale - this.gridSize) / this.gridSize);
+    const viewportTop = Math.floor((-transform.ty / scale - this.gridSize) / this.gridSize);
+    const viewportRight = Math.ceil((-transform.tx + bounds.width) / scale / this.gridSize) + 1;
+    const viewportBottom = Math.ceil((-transform.ty + bounds.height) / scale / this.gridSize) + 1;
+    
+    // Constrain to scene boundaries
     this.viewportBounds = {
-      left: Math.floor((-transform.tx / scale - this.gridSize) / this.gridSize),
-      top: Math.floor((-transform.ty / scale - this.gridSize) / this.gridSize),
-      right: Math.ceil((-transform.tx + bounds.width) / scale / this.gridSize) + 1,
-      bottom: Math.ceil((-transform.ty + bounds.height) / scale / this.gridSize) + 1
+      left: Math.max(0, viewportLeft),
+      top: Math.max(0, viewportTop),
+      right: Math.min(sceneCols - 1, viewportRight),
+      bottom: Math.min(sceneRows - 1, viewportBottom)
     };
   }
 
@@ -320,6 +340,9 @@ export default class HeightOverlay extends PIXI.Container {
    */
   onGridPointerDown(gridX, gridY, event) {
     if (!this.isVisible || !window.MapHeightEditor) return;
+    
+    // Only handle left clicks (button 0), ignore right clicks (button 2) 
+    if (event.data.button !== 0) return;
     
     event.stopPropagation();
     

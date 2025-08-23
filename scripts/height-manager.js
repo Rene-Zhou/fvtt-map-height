@@ -109,7 +109,10 @@ export default class HeightManager {
    */
   getGridHeight(gridX, gridY) {
     const key = this.getGridKey(gridX, gridY);
-    return this.gridHeights.get(key) || 0;
+    const height = this.gridHeights.get(key) || 0;
+    console.log(`${MODULE_ID} | getGridHeight(${gridX}, ${gridY}): key="${key}", height=${height}`);
+    console.log(`${MODULE_ID} | Current grid data:`, Object.fromEntries(this.gridHeights));
+    return height;
   }
 
   /**
@@ -117,6 +120,8 @@ export default class HeightManager {
    * 设置特定网格坐标的高度
    */
   async setGridHeight(gridX, gridY, height) {
+    console.log(`${MODULE_ID} | setGridHeight(${gridX}, ${gridY}, ${height})`);
+    
     if (!this.validateGridCoordinates(gridX, gridY)) {
       console.warn(`${MODULE_ID} | Invalid grid coordinates: ${gridX}, ${gridY}`);
       return false;
@@ -130,7 +135,10 @@ export default class HeightManager {
     const key = this.getGridKey(gridX, gridY);
     const oldHeight = this.gridHeights.get(key) || 0;
     
+    console.log(`${MODULE_ID} | Setting height: key="${key}", old=${oldHeight}, new=${height}`);
+    
     if (oldHeight === height) {
+      console.log(`${MODULE_ID} | No change needed for grid (${gridX}, ${gridY})`);
       return true; // No change needed
     }
 
@@ -144,6 +152,7 @@ export default class HeightManager {
     
     if (saved) {
       console.log(`${MODULE_ID} | Grid height updated: (${gridX}, ${gridY}) = ${height}`);
+      console.log(`${MODULE_ID} | Updated grid data:`, Object.fromEntries(this.gridHeights));
       
       // Trigger update event
       Hooks.callAll(`${MODULE_ID}.gridHeightChanged`, {
@@ -159,14 +168,127 @@ export default class HeightManager {
    * 获取Token当前的网格位置
    */
   getTokenGridPosition(token) {
-    if (!token || !canvas.grid) return null;
+    if (!token || !canvas.grid) {
+      console.warn(`${MODULE_ID} | Cannot get grid position: token or grid not available`);
+      return null;
+    }
     
     try {
       const tokenDoc = token.document || token;
-      const gridCoords = canvas.grid.getOffset({
-        x: tokenDoc.x,
-        y: tokenDoc.y
-      });
+      console.log(`${MODULE_ID} | Getting grid position for token at (${tokenDoc.x}, ${tokenDoc.y})`);
+      
+      // Get grid size and scene info for debugging
+      const gridSize = canvas.grid.size;
+      const sceneWidth = canvas.scene.width;
+      const sceneHeight = canvas.scene.height;
+      
+      console.log(`${MODULE_ID} | Grid info: size=${gridSize}, scene=(${sceneWidth}x${sceneHeight})`);
+      
+      let gridCoords;
+      
+      // Use multiple methods and compare results for accuracy
+      let v12Result = null;
+      let offsetResult = null;
+      let manualResult = null;
+      
+      // Method 1: Try v12+ getTopLeftPoint
+      if (canvas.grid.getTopLeftPoint) {
+        try {
+          const topLeft = canvas.grid.getTopLeftPoint({x: tokenDoc.x, y: tokenDoc.y});
+          const gridX = Math.floor(topLeft.x / gridSize);
+          const gridY = Math.floor(topLeft.y / gridSize);
+          v12Result = { i: gridX, j: gridY };
+          console.log(`${MODULE_ID} | Method 1 - v12 getTopLeftPoint: topLeft=(${topLeft.x}, ${topLeft.y}), grid=(${gridX}, ${gridY})`);
+        } catch (error) {
+          console.warn(`${MODULE_ID} | v12 getTopLeftPoint failed:`, error);
+        }
+      }
+      
+      // Method 2: Try legacy getOffset
+      if (canvas.grid.getOffset) {
+        try {
+          const offset = canvas.grid.getOffset({x: tokenDoc.x, y: tokenDoc.y});
+          offsetResult = { i: offset.i, j: offset.j };
+          console.log(`${MODULE_ID} | Method 2 - legacy getOffset: (${offset.i}, ${offset.j})`);
+        } catch (error) {
+          console.warn(`${MODULE_ID} | getOffset failed:`, error);
+        }
+      }
+      
+      // Method 3: Manual calculation (always works)
+      manualResult = {
+        i: Math.floor(tokenDoc.x / gridSize),
+        j: Math.floor(tokenDoc.y / gridSize)
+      };
+      console.log(`${MODULE_ID} | Method 3 - Manual calculation: (${manualResult.i}, ${manualResult.j})`);
+      
+      // Choose the most reliable result
+      if (v12Result && offsetResult && manualResult) {
+        // Compare all three methods
+        const v12Manual = (Math.abs(v12Result.i - manualResult.i) <= 1 && Math.abs(v12Result.j - manualResult.j) <= 1);
+        const offsetManual = (Math.abs(offsetResult.i - manualResult.i) <= 1 && Math.abs(offsetResult.j - manualResult.j) <= 1);
+        const offsetSwapped = (Math.abs(offsetResult.i - manualResult.j) <= 1 && Math.abs(offsetResult.j - manualResult.i) <= 1);
+        
+        if (v12Manual && offsetManual) {
+          console.log(`${MODULE_ID} | All methods agree, using v12 result`);
+          gridCoords = v12Result;
+        } else if (v12Manual) {
+          console.log(`${MODULE_ID} | v12 and manual agree, using v12 result`);
+          gridCoords = v12Result;
+        } else if (offsetManual) {
+          console.log(`${MODULE_ID} | offset and manual agree, using offset result`);
+          gridCoords = offsetResult;
+        } else if (offsetSwapped) {
+          console.log(`${MODULE_ID} | offset coordinates swapped, correcting`);
+          gridCoords = { i: offsetResult.j, j: offsetResult.i };
+        } else {
+          console.warn(`${MODULE_ID} | Methods disagree, using manual calculation`);
+          gridCoords = manualResult;
+        }
+      } else if (v12Result && manualResult) {
+        // Only v12 and manual available
+        if (Math.abs(v12Result.i - manualResult.i) <= 1 && Math.abs(v12Result.j - manualResult.j) <= 1) {
+          console.log(`${MODULE_ID} | v12 and manual agree, using v12 result`);
+          gridCoords = v12Result;
+        } else {
+          console.warn(`${MODULE_ID} | v12 and manual disagree, using manual`);
+          gridCoords = manualResult;
+        }
+      } else if (offsetResult && manualResult) {
+        // Only offset and manual available
+        if (Math.abs(offsetResult.i - manualResult.i) <= 1 && Math.abs(offsetResult.j - manualResult.j) <= 1) {
+          console.log(`${MODULE_ID} | offset and manual agree, using offset result`);
+          gridCoords = offsetResult;
+        } else if (Math.abs(offsetResult.i - manualResult.j) <= 1 && Math.abs(offsetResult.j - manualResult.i) <= 1) {
+          console.log(`${MODULE_ID} | offset coordinates swapped, correcting`);
+          gridCoords = { i: offsetResult.j, j: offsetResult.i };
+        } else {
+          console.warn(`${MODULE_ID} | offset unreliable, using manual`);
+          gridCoords = manualResult;
+        }
+      } else {
+        // Only manual available
+        console.log(`${MODULE_ID} | Using manual calculation fallback`);
+        gridCoords = manualResult;
+      }
+      
+      // Final validation and clamping
+      if (gridCoords.i < 0 || gridCoords.j < 0) {
+        console.warn(`${MODULE_ID} | Negative grid coordinates detected, clamping to 0`);
+        gridCoords.i = Math.max(0, gridCoords.i);
+        gridCoords.j = Math.max(0, gridCoords.j);
+      }
+      
+      const maxGridX = Math.ceil(sceneWidth / gridSize) - 1;
+      const maxGridY = Math.ceil(sceneHeight / gridSize) - 1;
+      
+      if (gridCoords.i > maxGridX || gridCoords.j > maxGridY) {
+        console.warn(`${MODULE_ID} | Grid coordinates exceed scene bounds, clamping`);
+        gridCoords.i = Math.min(gridCoords.i, maxGridX);
+        gridCoords.j = Math.min(gridCoords.j, maxGridY);
+      }
+      
+      console.log(`${MODULE_ID} | Final grid position: (${gridCoords.i}, ${gridCoords.j})`);
       
       return {
         i: gridCoords.i,
