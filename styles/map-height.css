@@ -1,0 +1,304 @@
+/**
+ * FVTT Map Height Editor Module - Styles
+ * 地图高度编辑器模块样式
+ */
+
+/* ========================================= */
+/* Control Tools Styling */
+/* ========================================= */
+
+.control-tool[data-control="mapheight"] {
+  color: #f0f0e0;
+}
+
+.control-tool[data-control="mapheight"].active {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 8px #ff6400;
+}
+
+/* ========================================= */
+/* Height Overlay Styling */
+/* ========================================= */
+
+.map-height-overlay {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  font-family: "Signika", sans-serif;
+  font-weight: bold;
+  text-align: center;
+  user-select: none;
+}
+
+.map-height-grid-number {
+  position: absolute;
+  color: #ffffff;
+  text-shadow: 
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 0 4px rgba(0, 0, 0, 0.8);
+  font-size: 14px;
+  font-weight: bold;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+}
+
+.map-height-grid-number:hover {
+  background: rgba(255, 100, 0, 0.6);
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(255, 100, 0, 0.8);
+}
+
+.map-height-grid-number.height-0 {
+  color: #4FC3F7;
+  border: 1px solid #4FC3F7;
+}
+
+.map-height-grid-number.height-positive {
+  color: #81C784;
+  border: 1px solid #81C784;
+}
+
+.map-height-grid-number.height-negative {
+  color: #E57373;
+  border: 1px solid #E57373;
+}
+
+/* ========================================= */
+/* Sidebar Control Styling */
+/* ========================================= */
+
+.map-height-sidebar {
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid #444;
+  border-radius: 5px;
+  padding: 10px;
+  color: #f0f0e0;
+}
+
+.map-height-sidebar header {
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.map-height-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.map-height-brush-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.map-height-brush {
+  flex: 1;
+  min-width: 60px;
+  padding: 6px 8px;
+  border: 1px solid #666;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f0f0e0;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  text-align: center;
+}
+
+.map-height-brush:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #ff6400;
+}
+
+.map-height-brush.active {
+  background: rgba(255, 100, 0, 0.6);
+  border-color: #ff6400;
+  box-shadow: 0 0 4px rgba(255, 100, 0, 0.5);
+}
+
+.map-height-custom-input {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.map-height-custom-input input {
+  flex: 1;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #666;
+  color: #f0f0e0;
+  border-radius: 3px;
+}
+
+.map-height-custom-input button {
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #666;
+  color: #f0f0e0;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.map-height-custom-input button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================= */
+/* Exception List Styling */
+/* ========================================= */
+
+.map-height-exceptions {
+  border-top: 1px solid #444;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.map-height-exception-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #333;
+}
+
+.map-height-exception-item:last-child {
+  border-bottom: none;
+}
+
+.map-height-exception-name {
+  flex: 1;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-height-exception-remove {
+  background: rgba(229, 115, 115, 0.6);
+  border: 1px solid #E57373;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.map-height-exception-remove:hover {
+  background: rgba(229, 115, 115, 0.8);
+}
+
+/* ========================================= */
+/* Dialog Styling */
+/* ========================================= */
+
+.map-height-dialog .dialog-content {
+  background: rgba(0, 0, 0, 0.9);
+  color: #f0f0e0;
+}
+
+.map-height-dialog input[type="number"] {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #666;
+  color: #f0f0e0;
+  padding: 6px;
+  border-radius: 3px;
+  width: 100%;
+}
+
+.map-height-dialog .dialog-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.map-height-dialog button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #666;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f0f0e0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-height-dialog button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.map-height-dialog button.primary {
+  background: rgba(255, 100, 0, 0.6);
+  border-color: #ff6400;
+}
+
+.map-height-dialog button.primary:hover {
+  background: rgba(255, 100, 0, 0.8);
+}
+
+/* ========================================= */
+/* Animations */
+/* ========================================= */
+
+@keyframes mapHeightFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.map-height-overlay.entering {
+  animation: mapHeightFadeIn 0.3s ease-out;
+}
+
+@keyframes mapHeightPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.map-height-grid-number.updating {
+  animation: mapHeightPulse 0.4s ease-in-out;
+}
+
+/* ========================================= */
+/* Responsive Design */
+/* ========================================= */
+
+@media (max-width: 768px) {
+  .map-height-sidebar {
+    width: 250px;
+  }
+  
+  .map-height-brush-group {
+    flex-direction: column;
+  }
+  
+  .map-height-brush {
+    min-width: auto;
+  }
+  
+  .map-height-grid-number {
+    font-size: 12px;
+    padding: 1px 4px;
+  }
+}

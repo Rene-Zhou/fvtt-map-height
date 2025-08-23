@@ -1,0 +1,470 @@
+<form class="map-height-sidebar-form">
+  <!-- Header Section -->
+  <header class="map-height-header">
+    <div class="flexrow">
+      <h3><i class="fas fa-mountain"></i> {{localize "MAP_HEIGHT.ModuleTitle"}}</h3>
+      <button type="button" class="map-height-edit-toggle {{#if isEditMode}}active{{/if}}" 
+              data-action="toggle-edit-mode" 
+              data-tooltip="{{localize 'MAP_HEIGHT.Tooltips.ActivateEditor'}}">
+        <i class="fas fa-edit"></i>
+        {{#if isEditMode}}
+          {{localize "MAP_HEIGHT.Controls.HeightEditMode"}} (ON)
+        {{else}}
+          {{localize "MAP_HEIGHT.Controls.HeightEditMode"}} (OFF)
+        {{/if}}
+      </button>
+    </div>
+  </header>
+
+  <!-- Brush Tools Section -->
+  {{#if isEditMode}}
+  <section class="map-height-brushes">
+    <h4><i class="fas fa-paint-brush"></i> {{localize "MAP_HEIGHT.Controls.HeightBrush"}}</h4>
+    
+    <!-- Predefined Height Brushes -->
+    <div class="map-height-brush-group">
+      {{#each brushHeights}}
+      <button type="button" 
+              class="map-height-brush {{#if (eq @root.currentBrushHeight this.value)}}active{{/if}}"
+              data-action="select-brush" 
+              data-height="{{this.value}}"
+              data-tooltip="{{this.label}} ({{this.value}})"
+              style="border-color: {{this.color}};">
+        <i class="{{this.icon}}"></i>
+        <span>{{this.value}}</span>
+      </button>
+      {{/each}}
+    </div>
+
+    <!-- Custom Height Input -->
+    <div class="map-height-custom-input">
+      <label for="customHeight">{{localize "MAP_HEIGHT.Tooltips.CustomHeight"}}:</label>
+      <div class="flexrow">
+        <input type="number" 
+               name="customHeight" 
+               value="{{customHeight}}" 
+               min="-1000" 
+               max="1000" 
+               step="1"
+               placeholder="Custom height">
+        <button type="button" 
+                data-action="set-custom-height" 
+                data-tooltip="{{localize 'MAP_HEIGHT.Dialog.CustomHeight.Apply'}}">
+          <i class="fas fa-check"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Current Brush Display -->
+    <div class="current-brush-display">
+      <strong>Current Brush: {{currentBrushHeight}}</strong>
+    </div>
+  </section>
+  {{/if}}
+
+  <!-- Settings Section -->
+  <section class="map-height-settings">
+    <h4><i class="fas fa-cog"></i> Settings</h4>
+    
+    <div class="form-group">
+      <label class="checkbox">
+        <input type="checkbox" name="autoUpdate" {{checked autoUpdate}}>
+        {{localize "MAP_HEIGHT.Settings.AutoUpdateTokens.Name"}}
+      </label>
+      <p class="hint">{{localize "MAP_HEIGHT.Settings.AutoUpdateTokens.Hint"}}</p>
+    </div>
+
+    <div class="form-group">
+      <label for="overlayOpacity">{{localize "MAP_HEIGHT.Settings.OverlayOpacity.Name"}}: {{overlayOpacity}}</label>
+      <input type="range" 
+             name="overlayOpacity" 
+             min="0" 
+             max="1" 
+             step="0.1" 
+             value="{{overlayOpacity}}">
+      <p class="hint">{{localize "MAP_HEIGHT.Settings.OverlayOpacity.Hint"}}</p>
+    </div>
+  </section>
+
+  <!-- Statistics Section -->
+  {{#if stats}}
+  <section class="map-height-stats">
+    <h4><i class="fas fa-chart-bar"></i> Statistics</h4>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <label>Total Grids:</label>
+        <span>{{stats.totalGrids}}</span>
+      </div>
+      <div class="stat-item">
+        <label>Exception Tokens:</label>
+        <span>{{stats.exceptionTokens}}</span>
+      </div>
+      <div class="stat-item">
+        <label>Height Range:</label>
+        <span>{{stats.minHeight}} to {{stats.maxHeight}}</span>
+      </div>
+      <div class="stat-item">
+        <label>Average Height:</label>
+        <span>{{numberFormat stats.averageHeight decimals=1}}</span>
+      </div>
+    </div>
+  </section>
+  {{/if}}
+
+  <!-- Exception Management Section -->
+  <section class="map-height-exceptions">
+    <h4><i class="fas fa-plane"></i> {{localize "MAP_HEIGHT.Controls.ExceptionList"}}</h4>
+    
+    <div class="exception-controls">
+      <button type="button" 
+              data-action="add-exception" 
+              data-tooltip="Add selected token(s) to exception list">
+        <i class="fas fa-plus"></i>
+        {{localize "MAP_HEIGHT.Dialog.ExceptionManagement.AddException"}}
+      </button>
+    </div>
+
+    {{#if exceptionTokens}}
+    <div class="exception-list">
+      {{#each exceptionTokens}}
+      <div class="map-height-exception-item">
+        <div class="exception-info">
+          <img src="{{this.img}}" alt="{{this.name}}" class="token-img">
+          <div class="exception-details">
+            <div class="map-height-exception-name">{{this.name}}</div>
+            <div class="exception-actor">{{this.actor}}</div>
+          </div>
+        </div>
+        <button type="button" 
+                class="map-height-exception-remove" 
+                data-action="remove-exception" 
+                data-token-id="{{this.id}}"
+                data-tooltip="{{localize 'MAP_HEIGHT.Dialog.ExceptionManagement.RemoveException'}}">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      {{/each}}
+    </div>
+    {{else}}
+    <p class="no-exceptions">No flying units configured</p>
+    {{/if}}
+  </section>
+
+  <!-- Data Management Section -->
+  <section class="map-height-data-management">
+    <h4><i class="fas fa-database"></i> Data Management</h4>
+    
+    <div class="data-controls">
+      <button type="button" 
+              data-action="export-data" 
+              data-tooltip="Export height data to JSON file">
+        <i class="fas fa-download"></i>
+        Export Data
+      </button>
+      
+      <button type="button" 
+              data-action="import-data" 
+              data-tooltip="Import height data from JSON file">
+        <i class="fas fa-upload"></i>
+        Import Data
+      </button>
+      
+      <button type="button" 
+              data-action="clear-all" 
+              data-tooltip="Clear all height data"
+              class="danger">
+        <i class="fas fa-trash"></i>
+        Clear All
+      </button>
+    </div>
+  </section>
+
+  <!-- Help Section -->
+  <section class="map-height-help">
+    <details>
+      <summary><i class="fas fa-question-circle"></i> How to Use</summary>
+      <div class="help-content">
+        <ol>
+          <li>Click "Height Edit Mode" to activate editing</li>
+          <li>Select a brush height from the toolbar</li>
+          <li>Click on grid squares to set their height</li>
+          <li>Tokens will automatically update their elevation</li>
+          <li>Add flying units to the exception list to prevent auto-updates</li>
+        </ol>
+      </div>
+    </details>
+  </section>
+</form>
+
+<style>
+.map-height-sidebar-form {
+  padding: 10px;
+  color: var(--color-text-primary);
+}
+
+.map-height-header {
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.map-height-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-height-edit-toggle {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-bg-btn);
+  color: var(--color-text-primary);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8em;
+  transition: all 0.2s ease;
+}
+
+.map-height-edit-toggle.active {
+  background: var(--color-bg-option);
+  border-color: var(--color-border-highlight);
+  box-shadow: 0 0 4px var(--color-shadow-highlight);
+}
+
+.map-height-brushes {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  border: 1px solid var(--color-border-light);
+}
+
+.map-height-brush-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.map-height-brush {
+  flex: 1;
+  min-width: 50px;
+  padding: 8px;
+  border: 2px solid var(--color-border-light);
+  background: var(--color-bg-btn);
+  color: var(--color-text-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.8em;
+}
+
+.map-height-brush:hover {
+  background: var(--color-bg-option);
+  transform: translateY(-1px);
+}
+
+.map-height-brush.active {
+  background: var(--color-bg-option);
+  border-color: var(--color-border-highlight);
+  box-shadow: 0 0 6px var(--color-shadow-highlight);
+}
+
+.map-height-custom-input {
+  margin-top: 10px;
+}
+
+.map-height-custom-input .flexrow {
+  gap: 6px;
+}
+
+.map-height-custom-input input {
+  flex: 1;
+  padding: 4px;
+  background: var(--color-bg-btn);
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text-primary);
+  border-radius: 3px;
+}
+
+.current-brush-display {
+  text-align: center;
+  margin-top: 8px;
+  padding: 4px;
+  background: var(--color-bg-option);
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.map-height-settings, .map-height-stats, .map-height-exceptions, .map-height-data-management {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.map-height-settings h4, .map-height-stats h4, .map-height-exceptions h4, .map-height-data-management h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.95em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 0.85em;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.exception-controls {
+  margin-bottom: 8px;
+}
+
+.exception-list {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.map-height-exception-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 3px;
+  margin-bottom: 4px;
+  background: var(--color-bg-btn);
+}
+
+.exception-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.token-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+}
+
+.exception-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.map-height-exception-name {
+  font-weight: bold;
+  font-size: 0.85em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exception-actor {
+  font-size: 0.75em;
+  color: var(--color-text-light);
+}
+
+.map-height-exception-remove {
+  background: var(--color-bg-btn);
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text-primary);
+  padding: 4px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8em;
+}
+
+.map-height-exception-remove:hover {
+  background: var(--color-delete);
+  color: white;
+}
+
+.data-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.data-controls button {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-bg-btn);
+  color: var(--color-text-primary);
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85em;
+}
+
+.data-controls button:hover {
+  background: var(--color-bg-option);
+}
+
+.data-controls button.danger {
+  border-color: var(--color-delete);
+  color: var(--color-delete);
+}
+
+.data-controls button.danger:hover {
+  background: var(--color-delete);
+  color: white;
+}
+
+.map-height-help {
+  margin-top: 10px;
+}
+
+.map-height-help summary {
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.help-content {
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--color-bg-option);
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+
+.help-content ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.help-content li {
+  margin-bottom: 4px;
+}
+
+.no-exceptions {
+  text-align: center;
+  font-style: italic;
+  color: var(--color-text-light);
+  font-size: 0.85em;
+  margin: 10px 0;
+}
+</style>

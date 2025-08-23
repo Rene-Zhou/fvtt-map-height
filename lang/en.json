@@ -1,0 +1,54 @@
+{
+  "MAP_HEIGHT": {
+    "ModuleTitle": "Map Height Editor",
+    "Settings": {
+      "AutoUpdateTokens": {
+        "Name": "Auto Update Token Heights",
+        "Hint": "Automatically update token elevations when they move to different height grids"
+      },
+      "OverlayOpacity": {
+        "Name": "Height Overlay Opacity", 
+        "Hint": "Opacity of the height number overlay (0-1)"
+      },
+      "DefaultBrushHeight": {
+        "Name": "Default Brush Height",
+        "Hint": "Default height value for the brush tool"
+      }
+    },
+    "Controls": {
+      "HeightEditMode": "Height Edit Mode",
+      "HeightBrush": "Height Brush",
+      "ExceptionList": "Flying Units Exception List"
+    },
+    "Tooltips": {
+      "ActivateEditor": "Activate height editor mode",
+      "SetHeight0": "Set height to 0 (water level)",
+      "SetHeight5": "Set height to 5 (low elevation)",
+      "SetHeight10": "Set height to 10 (high elevation)",
+      "CustomHeight": "Set custom height value"
+    },
+    "Dialog": {
+      "CustomHeight": {
+        "Title": "Set Custom Height",
+        "Label": "Height Value:",
+        "Apply": "Apply",
+        "Cancel": "Cancel"
+      },
+      "ExceptionManagement": {
+        "Title": "Manage Flying Units",
+        "AddException": "Add Exception",
+        "RemoveException": "Remove Exception",
+        "NoTokenSelected": "No token selected"
+      }
+    },
+    "Notifications": {
+      "HeightModeActivated": "Height edit mode activated",
+      "HeightModeDeactivated": "Height edit mode deactivated",
+      "HeightUpdated": "Grid height updated to {height}",
+      "TokenExceptionAdded": "Token added to flying units exception list",
+      "TokenExceptionRemoved": "Token removed from flying units exception list",
+      "ErrorSavingData": "Error saving height data",
+      "ErrorLoadingData": "Error loading height data"
+    }
+  }
+}

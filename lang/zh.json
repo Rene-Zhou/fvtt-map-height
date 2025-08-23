@@ -1,0 +1,54 @@
+{
+  "MAP_HEIGHT": {
+    "ModuleTitle": "地图高度编辑器",
+    "Settings": {
+      "AutoUpdateTokens": {
+        "Name": "自动更新Token高度",
+        "Hint": "当Token移动到不同高度网格时自动更新其高度值"
+      },
+      "OverlayOpacity": {
+        "Name": "高度覆盖层透明度",
+        "Hint": "高度数字覆盖层的透明度 (0-1)"
+      },
+      "DefaultBrushHeight": {
+        "Name": "默认画笔高度",
+        "Hint": "画笔工具的默认高度值"
+      }
+    },
+    "Controls": {
+      "HeightEditMode": "高度编辑模式",
+      "HeightBrush": "高度画笔",
+      "ExceptionList": "飞行单位例外列表"
+    },
+    "Tooltips": {
+      "ActivateEditor": "激活高度编辑器模式",
+      "SetHeight0": "设置高度为0（水位）",
+      "SetHeight5": "设置高度为5（低海拔）",
+      "SetHeight10": "设置高度为10（高海拔）",
+      "CustomHeight": "设置自定义高度值"
+    },
+    "Dialog": {
+      "CustomHeight": {
+        "Title": "设置自定义高度",
+        "Label": "高度值：",
+        "Apply": "应用",
+        "Cancel": "取消"
+      },
+      "ExceptionManagement": {
+        "Title": "管理飞行单位",
+        "AddException": "添加例外",
+        "RemoveException": "移除例外",
+        "NoTokenSelected": "未选择Token"
+      }
+    },
+    "Notifications": {
+      "HeightModeActivated": "高度编辑模式已激活",
+      "HeightModeDeactivated": "高度编辑模式已关闭",
+      "HeightUpdated": "网格高度已更新为 {height}",
+      "TokenExceptionAdded": "Token已添加到飞行单位例外列表",
+      "TokenExceptionRemoved": "Token已从飞行单位例外列表中移除",
+      "ErrorSavingData": "保存高度数据时出错",
+      "ErrorLoadingData": "加载高度数据时出错"
+    }
+  }
+}
