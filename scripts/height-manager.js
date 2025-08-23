@@ -181,8 +181,9 @@ export default class HeightManager {
       const gridSize = canvas.grid.size;
       const sceneWidth = canvas.scene.width;
       const sceneHeight = canvas.scene.height;
+      const gridType = canvas.grid.type;
       
-      console.log(`${MODULE_ID} | Grid info: size=${gridSize}, scene=(${sceneWidth}x${sceneHeight})`);
+      console.log(`${MODULE_ID} | Grid info: type=${gridType}, size=${gridSize}, scene=(${sceneWidth}x${sceneHeight})`);
       
       let gridCoords;
       

@@ -28,8 +28,11 @@ export default class TokenAutomation {
    * 初始化Token自动化钩子
    */
   initialize() {
-    // Hook for token movement
+    // Hook for token movement (post-update)
     Hooks.on('updateToken', this.onTokenUpdate.bind(this));
+    
+    // Hook for token movement completion (more reliable)
+    Hooks.on('moveToken', this.onTokenMoved.bind(this));
     
     // Hook for token creation
     Hooks.on('createToken', this.onTokenCreate.bind(this));
@@ -50,6 +53,18 @@ export default class TokenAutomation {
    */
   async onTokenUpdate(tokenDocument, changes, options, userId) {
     console.log(`${MODULE_ID} | Token update triggered for "${tokenDocument.name}":`, changes);
+    console.log(`${MODULE_ID} | Token current position: (${tokenDocument.x}, ${tokenDocument.y})`);
+    
+    // 深入分析 changes 对象的内容
+    if ('x' in changes || 'y' in changes) {
+      console.log(`${MODULE_ID} | Position changes detected:`);
+      if ('x' in changes) {
+        console.log(`${MODULE_ID} |   changes.x = ${changes.x} (current tokenDoc.x = ${tokenDocument.x})`);
+      }
+      if ('y' in changes) {
+        console.log(`${MODULE_ID} |   changes.y = ${changes.y} (current tokenDoc.y = ${tokenDocument.y})`);
+      }
+    }
     
     // Only process if auto-update is enabled
     if (!this.isEnabled || !game.settings.get(MODULE_ID, "autoUpdateTokens")) {
@@ -75,25 +90,74 @@ export default class TokenAutomation {
       return;
     }
 
-    // Calculate old position correctly - changes contains the delta, not absolute position  
-    const newX = tokenDocument.x;
-    const newY = tokenDocument.y;
-    const deltaX = changes.x || 0;
-    const deltaY = changes.y || 0;
-    const oldX = newX - deltaX;
-    const oldY = newY - deltaY;
+    // Get the final position from changes (avoiding animation transition coordinates)
+    const finalX = changes.x !== undefined ? changes.x : tokenDocument.x;
+    const finalY = changes.y !== undefined ? changes.y : tokenDocument.y;
     
-    const distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
-    const gridSize = canvas.grid.size;
-    const maxReasonableDistance = gridSize * 10; // Allow up to 10 grid squares per update
+    console.log(`${MODULE_ID} | Token "${tokenDocument.name}" final position: (${finalX}, ${finalY})`);
+    console.log(`${MODULE_ID} | Current animation position: (${tokenDocument.x}, ${tokenDocument.y})`);
     
-    if (distance > maxReasonableDistance) {
-      console.warn(`${MODULE_ID} | Large movement detected (${distance.toFixed(1)}px), might be teleport/glitch - processing anyway but flagging`);
+    // Create a temporary token object with final coordinates for grid calculation
+    const finalTokenData = {
+      document: {
+        x: finalX,
+        y: finalY,
+        width: tokenDocument.width,
+        height: tokenDocument.height,
+        id: tokenDocument.id,
+        name: tokenDocument.name
+      }
+    };
+    
+    // Test grid position with final coordinates
+    const testPosition = this.heightManager.getTokenGridPosition(finalTokenData);
+    if (testPosition) {
+      const testHeight = this.heightManager.getGridHeight(testPosition.i, testPosition.j);
+      console.log(`${MODULE_ID} | Final position test - Grid: (${testPosition.i}, ${testPosition.j}), Height: ${testHeight}`);
+      
+      // Store the final coordinates for later use in updateTokenElevation
+      tokenDocument._mapHeightFinalX = finalX;
+      tokenDocument._mapHeightFinalY = finalY;
+      
+      console.log(`${MODULE_ID} | Stored final coordinates for later use: (${finalX}, ${finalY})`);
+    } else {
+      console.warn(`${MODULE_ID} | Failed to get grid position for final coordinates`);
     }
     
-    console.log(`${MODULE_ID} | Movement delta: (${deltaX}, ${deltaY}), distance: ${distance.toFixed(1)}px`);
-    console.log(`${MODULE_ID} | Position: (${oldX}, ${oldY}) → (${newX}, ${newY})`);
-    console.log(`${MODULE_ID} | Queuing token update for "${tokenDocument.name}"`);
+    console.log(`${MODULE_ID} | Queuing token height update for "${tokenDocument.name}"`);
+    
+    // Add to update queue with throttling
+    this.queueTokenUpdate(tokenDocument);
+  }
+
+  /**
+   * Handle token movement completion (moveToken hook)
+   * 处理Token移动完成（moveToken钩子）
+   */
+  async onTokenMoved(tokenDocument, movement, operation, user) {
+    console.log(`${MODULE_ID} | moveToken hook triggered for "${tokenDocument.name}"`);
+    console.log(`${MODULE_ID} | Movement data:`, movement);
+    console.log(`${MODULE_ID} | Token final position: (${tokenDocument.x}, ${tokenDocument.y})`);
+
+    // Only process if auto-update is enabled
+    if (!this.isEnabled || !game.settings.get(MODULE_ID, "autoUpdateTokens")) {
+      console.log(`${MODULE_ID} | Token automation disabled - skipping moveToken update`);
+      return;
+    }
+
+    // Only process for GMs or if user controls the token
+    if (!game.user.isGM && !tokenDocument.isOwner) {
+      console.log(`${MODULE_ID} | User not GM and doesn't own token - skipping moveToken update`);
+      return;
+    }
+
+    // Don't process if token is in exception list
+    if (this.heightManager.isExceptionToken(tokenDocument.id)) {
+      console.log(`${MODULE_ID} | Token in exception list - skipping moveToken update`);
+      return;
+    }
+
+    console.log(`${MODULE_ID} | Processing moveToken for "${tokenDocument.name}" at (${tokenDocument.x}, ${tokenDocument.y})`);
     
     // Add to update queue with throttling
     this.queueTokenUpdate(tokenDocument);
@@ -225,20 +289,48 @@ export default class TokenAutomation {
    */
   async updateTokenElevation(tokenDocument) {
     try {
+      console.log(`${MODULE_ID} | === updateTokenElevation START for "${tokenDocument.name}" ===`);
+      console.log(`${MODULE_ID} | Token current coordinates: (${tokenDocument.x}, ${tokenDocument.y})`);
+      
       // Skip if token is in exception list
       if (this.heightManager.isExceptionToken(tokenDocument.id)) {
         console.log(`${MODULE_ID} | Skipping token "${tokenDocument.name}" - in exception list`);
         return;
       }
 
-      // Get token's current grid position
-      const position = this.heightManager.getTokenGridPosition(tokenDocument);
+      // Use stored final coordinates if available, otherwise use current coordinates
+      let targetTokenData = tokenDocument;
+      if (tokenDocument._mapHeightFinalX !== undefined && tokenDocument._mapHeightFinalY !== undefined) {
+        console.log(`${MODULE_ID} | Using stored final coordinates: (${tokenDocument._mapHeightFinalX}, ${tokenDocument._mapHeightFinalY})`);
+        targetTokenData = {
+          document: {
+            x: tokenDocument._mapHeightFinalX,
+            y: tokenDocument._mapHeightFinalY,
+            width: tokenDocument.width,
+            height: tokenDocument.height,
+            id: tokenDocument.id,
+            name: tokenDocument.name
+          }
+        };
+        
+        // Clear the stored coordinates
+        delete tokenDocument._mapHeightFinalX;
+        delete tokenDocument._mapHeightFinalY;
+      } else {
+        console.log(`${MODULE_ID} | Using current coordinates: (${tokenDocument.x}, ${tokenDocument.y})`);
+      }
+
+      // Get token's grid position
+      console.log(`${MODULE_ID} | Calling getTokenGridPosition...`);
+      const position = this.heightManager.getTokenGridPosition(targetTokenData);
       if (!position) {
         console.warn(`${MODULE_ID} | Could not determine grid position for token ${tokenDocument.name}`);
         return;
       }
+      console.log(`${MODULE_ID} | Calculated grid position: (${position.i}, ${position.j})`);
 
       // Get height for this grid position
+      console.log(`${MODULE_ID} | Calling getGridHeight for grid (${position.i}, ${position.j})...`);
       const newHeight = this.heightManager.getGridHeight(position.i, position.j);
       const currentHeight = tokenDocument.elevation || 0;
 
@@ -257,10 +349,15 @@ export default class TokenAutomation {
           newElevation: newHeight,
           gridPosition: position
         });
+      } else {
+        console.log(`${MODULE_ID} | No elevation change needed for "${tokenDocument.name}"`);
       }
+      
+      console.log(`${MODULE_ID} | === updateTokenElevation END for "${tokenDocument.name}" ===`);
 
     } catch (error) {
       console.error(`${MODULE_ID} | Error updating token elevation:`, error);
+      console.log(`${MODULE_ID} | === updateTokenElevation ERROR END for "${tokenDocument.name}" ===`);
     }
   }
 
