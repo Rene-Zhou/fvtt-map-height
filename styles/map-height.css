@@ -4,60 +4,20 @@
  */
 
 /* ========================================= */
-/* 主题适配 - Theme Adaptation */
+/* ApplicationV2 容器样式 - ApplicationV2 Container Styles */
 /* ========================================= */
 
-/* 确保在不同主题下的正确显示 */
-.map-height-sidebar,
-.map-height-sidebar-form,
-#map-height-sidebar {
-  /* 适配FVTT v12主题系统 */
-  background: var(--color-bg-window, var(--color-bg-primary, rgba(0, 0, 0, 0.9)));
-  border: 1px solid var(--color-border-window, var(--color-border-light-primary, #444));
-  color: var(--color-text-window, var(--color-text-primary, #f0f0e0));
+/* ApplicationV2自动处理主题，我们只需要设置内容样式 */
+.map-height .window-content {
+  padding: 0;
+  overflow: hidden;
 }
 
-/* 强制确保在浅色主题下文字颜色正确 */
-@media (prefers-color-scheme: light) {
-  .map-height-sidebar,
-  .map-height-sidebar-form,
-  #map-height-sidebar {
-    background: var(--color-bg-window, #f5f5dc) !important;  /* 米黄色背景 */
-    color: var(--color-text-window, #333333) !important;    /* 深色文字 */
-  }
-  
-  .map-height-sidebar .map-height-header h3,
-  .map-height-sidebar .form-group label,
-  .map-height-sidebar-form .form-group label,
-  .map-height-sidebar h4 {
-    color: var(--color-text-window, #333333) !important;
-  }
-  
-  /* 输入控件适配浅色主题 */
-  .map-height-sidebar input,
-  .map-height-sidebar button,
-  .map-height-sidebar .map-height-custom-input input {
-    background: var(--color-bg-input, rgba(255, 255, 255, 0.8)) !important;
-    color: var(--color-text-input, #333333) !important;
-    border-color: var(--color-border-input, #999) !important;
-  }
-}
-
-/* 强制确保在深色主题下文字颜色正确 */
-@media (prefers-color-scheme: dark) {
-  .map-height-sidebar,
-  .map-height-sidebar-form,
-  #map-height-sidebar {
-    background: var(--color-bg-window, rgba(0, 0, 0, 0.9)) !important;
-    color: var(--color-text-window, #f0f0e0) !important;
-    border-color: var(--color-border-window, #444) !important;  /* 修复边框颜色 */
-  }
-  
-  .map-height-sidebar .map-height-header h3,
-  .map-height-sidebar .form-group label,
-  .map-height-sidebar-form .form-group label {
-    color: var(--color-text-window, #f0f0e0) !important;
-  }
+.map-height form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: transparent;
 }
 
 /* ========================================= */
@@ -129,39 +89,33 @@
 }
 
 /* ========================================= */
-/* Sidebar Control Styling */
+/* ApplicationV2 内容样式 - ApplicationV2 Content Styles */
 /* ========================================= */
 
-.map-height-sidebar {
-  border-radius: 5px;
-  padding: 10px;
+.map-height form {
+  padding: 15px;
+  gap: 12px;
 }
 
-.map-height-sidebar-form {
-  padding: 10px;
-}
-
-.map-height-sidebar .map-height-header {
-  border-bottom: 1px solid var(--color-border-window, var(--color-border-light, #444));
+.map-height .map-height-header {
+  border-bottom: 1px solid var(--color-border-light);
   padding-bottom: 8px;
   margin-bottom: 12px;
 }
 
-.map-height-sidebar .map-height-header h3 {
+.map-height .map-height-header h3 {
   margin: 0;
   font-size: 1.1em;
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-text-window, var(--color-text-primary, #f0f0e0));
 }
 
-.map-height-sidebar .map-height-edit-toggle {
+.map-height .map-height-edit-toggle {
   flex: 0 0 auto;
   padding: 4px 8px;
-  border: 1px solid var(--color-border-window, var(--color-border-light, #444));
-  background: var(--color-bg-btn, rgba(255, 255, 255, 0.1));
-  color: var(--color-text-window, var(--color-text-primary, #f0f0e0));
+  border: 1px solid var(--color-border-light);
+  background: var(--color-bg-btn);
   border-radius: 3px;
   cursor: pointer;
   font-size: 0.8em;
@@ -174,21 +128,20 @@
   box-shadow: 0 0 4px var(--color-shadow-highlight, rgba(255, 100, 0, 0.5));
 }
 
-.map-height-brushes {
+.map-height .map-height-brushes {
   margin-bottom: 15px;
   padding: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--color-bg-secondary);
   border-radius: 4px;
-  border: 1px solid var(--color-border-light, #444);
+  border: 1px solid var(--color-border-light);
 }
 
-.map-height-brushes h4 {
+.map-height .map-height-brushes h4 {
   margin: 0 0 8px 0;
   font-size: 0.95em;
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-text-primary, #f0f0e0);
 }
 
 .map-height-sidebar header {
@@ -443,22 +396,25 @@
   align-items: center;
 }
 
-.map-height-sidebar .map-height-custom-input input {
+.map-height .map-height-custom-input input {
   flex: 1;
-  padding: 4px;
-  background: var(--color-bg-input, var(--color-bg-btn, rgba(255, 255, 255, 0.1)));
-  border: 1px solid var(--color-border-input, var(--color-border-light, #666));
-  color: var(--color-text-input, var(--color-text-primary, #f0f0e0));
+  padding: 6px 8px;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-input);
   border-radius: 3px;
 }
 
-.map-height-sidebar .map-height-custom-input button {
-  padding: 4px 8px;
-  background: var(--color-bg-btn, rgba(255, 255, 255, 0.1));
-  border: 1px solid var(--color-border-window, var(--color-border-light, #666));
-  color: var(--color-text-window, var(--color-text-primary, #f0f0e0));
+.map-height .map-height-custom-input button {
+  padding: 6px 10px;
+  background: var(--color-bg-btn);
+  border: 1px solid var(--color-border-light);
   border-radius: 3px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-height .map-height-custom-input button:hover {
+  background: var(--color-bg-btn-hover);
 }
 
 .current-brush-display {
@@ -471,46 +427,48 @@
   color: var(--color-text-primary, #f0f0e0);
 }
 
-.map-height-settings, .map-height-stats, .map-height-exceptions, .map-height-data-management {
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--color-border-light, #444);
+.map-height .map-height-settings, 
+.map-height .map-height-stats, 
+.map-height .map-height-exceptions, 
+.map-height .map-height-data-management {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
-.map-height-settings h4, .map-height-stats h4, .map-height-exceptions h4, .map-height-data-management h4 {
-  margin: 0 0 8px 0;
-  font-size: 0.95em;
+.map-height .map-height-settings h4, 
+.map-height .map-height-stats h4, 
+.map-height .map-height-exceptions h4, 
+.map-height .map-height-data-management h4 {
+  margin: 0 0 10px 0;
+  font-size: 1em;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: var(--color-text-primary, #f0f0e0);
+  gap: 8px;
 }
 
-/* 限制form-group样式只在map-height-sidebar内生效 */
-.map-height-sidebar .form-group,
-.map-height-sidebar-form .form-group {
-  margin-bottom: 8px;
+/* ApplicationV2表单样式 */
+.map-height .form-group {
+  margin-bottom: 12px;
 }
 
-.map-height-sidebar .form-group label,
-.map-height-sidebar-form .form-group label {
-  color: var(--color-text-primary, #f0f0e0);
+.map-height .form-group label {
   font-size: 0.9em;
+  font-weight: 500;
 }
 
-.map-height-sidebar .form-group .checkbox,
-.map-height-sidebar-form .form-group .checkbox {
+.map-height .form-group .checkbox {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
-.map-height-sidebar .form-group .hint,
-.map-height-sidebar-form .form-group .hint {
+.map-height .form-group .hint {
   font-size: 0.75em;
-  color: var(--color-text-light, #ccc);
+  color: var(--color-text-light);
   font-style: italic;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .stats-grid {
@@ -579,37 +537,38 @@
   color: var(--color-text-light, #ccc);
 }
 
-.data-controls {
+.map-height .data-controls {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.data-controls button {
-  padding: 6px 10px;
-  border: 1px solid var(--color-border-light, #444);
-  background: var(--color-bg-btn, rgba(255, 255, 255, 0.1));
-  color: var(--color-text-primary, #f0f0e0);
-  border-radius: 3px;
+.map-height .data-controls button {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-bg-btn);
+  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.85em;
+  gap: 8px;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
 }
 
-.data-controls button:hover {
-  background: var(--color-bg-option, rgba(255, 255, 255, 0.2));
+.map-height .data-controls button:hover {
+  background: var(--color-bg-btn-hover);
+  transform: translateY(-1px);
 }
 
-.data-controls button.danger {
-  border-color: var(--color-delete, #E57373);
-  color: var(--color-delete, #E57373);
+.map-height .data-controls button.danger {
+  border-color: var(--color-delete);
+  color: var(--color-delete);
 }
 
-.data-controls button.danger:hover {
-  background: var(--color-delete, #E57373);
-  color: white;
+.map-height .data-controls button.danger:hover {
+  background: var(--color-delete);
+  color: var(--color-text-on-delete);
 }
 
 .map-height-help {

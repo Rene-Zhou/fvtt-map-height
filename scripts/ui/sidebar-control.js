@@ -6,10 +6,10 @@
 const MODULE_ID = "fvtt-map-height";
 
 /**
- * MapHeightSidebar class - Application-based sidebar control
- * 地图高度侧边栏类 - 基于Application的侧边栏控件
+ * MapHeightSidebar class - ApplicationV2-based sidebar control
+ * 地图高度侧边栏类 - 基于ApplicationV2的侧边栏控件
  */
-export default class MapHeightSidebar extends Application {
+export default class MapHeightSidebar extends foundry.applications.api.ApplicationV2 {
   
   constructor(heightManager, options = {}) {
     super(options);
@@ -20,31 +20,73 @@ export default class MapHeightSidebar extends Application {
   }
 
   /**
-   * Default application options
-   * 默认应用程序选项
+   * ApplicationV2 default options
+   * ApplicationV2默认选项
    */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      id: "map-height-sidebar",
-      classes: ["map-height-sidebar"],
-      title: "Map Height Editor",
-      template: "modules/fvtt-map-height/templates/sidebar-control.hbs",
+  static DEFAULT_OPTIONS = {
+    id: "map-height-sidebar",
+    classes: ["map-height"],
+    tag: "section",
+    window: {
+      title: "MAP_HEIGHT.ModuleTitle",
+      icon: "fas fa-mountain",
+      minimizable: true,
+      resizable: false
+    },
+    position: {
       width: 320,
       height: "auto",
       left: 120,
-      top: 150,
-      minimizable: true,
-      resizable: false,
+      top: 150
+    },
+    form: {
+      handler: MapHeightSidebar.#onFormSubmit,
       submitOnChange: false,
       closeOnSubmit: false
-    });
+    }
+  };
+
+  /**
+   * ApplicationV2 template parts
+   * ApplicationV2模板部分
+   */
+  static PARTS = {
+    form: {
+      template: "modules/fvtt-map-height/templates/sidebar-control.hbs"
+    }
+  };
+
+  /**
+   * ApplicationV2 static form handler
+   * ApplicationV2静态表单处理器
+   */
+  static async #onFormSubmit(event, form, formData) {
+    // 处理表单提交（如果需要）
+    return;
   }
 
   /**
-   * Prepare data for rendering
-   * 准备渲染数据
+   * ApplicationV2 required render method
+   * ApplicationV2必需的渲染方法
    */
-  getData(options) {
+  async _renderHTML(context, options) {
+    const html = await renderTemplate(this.constructor.PARTS.form.template, context);
+    return html;
+  }
+
+  /**
+   * ApplicationV2 required replace method
+   * ApplicationV2必需的替换方法
+   */
+  _replaceHTML(result, content, options) {
+    content.innerHTML = result;
+  }
+
+  /**
+   * Prepare context data for rendering
+   * 准备渲染的上下文数据
+   */
+  async _prepareContext(options = {}) {
     const context = {
       isGM: game.user.isGM,
       isEditMode: this.isEditMode,
@@ -98,50 +140,74 @@ export default class MapHeightSidebar extends Application {
   }
 
   /**
-   * Event listeners for the sidebar
-   * 侧边栏的事件监听器
+   * ApplicationV2 event listeners
+   * ApplicationV2事件监听器
    */
-  activateListeners(html) {
-    super.activateListeners(html);
-    
-    // Convert jQuery to DOM element if needed
-    const element = html[0] || html;
+  _attachFrameListeners() {
+    super._attachFrameListeners();
+  }
+
+  /**
+   * ApplicationV2 part listeners
+   * ApplicationV2部分监听器
+   */
+  _attachPartListeners(partId, htmlElement, options) {
+    super._attachPartListeners(partId, htmlElement, options);
     
     // Edit mode toggle
-    html.find('[data-action="toggle-edit-mode"]').on('click', 
-      this._onToggleEditMode.bind(this));
-    
-    // Brush height selection
-    html.find('[data-action="select-brush"]').on('click', 
-      this._onSelectBrush.bind(this));
-    
-    // Custom height input
-    html.find('[data-action="set-custom-height"]').on('click', 
-      this._onSetCustomHeight.bind(this));
-    
-    // Clear all heights
-    html.find('[data-action="clear-all"]').on('click', 
-      this._onClearAll.bind(this));
-    
-    // Export/Import
-    html.find('[data-action="export-data"]').on('click', 
-      this._onExportData.bind(this));
-    html.find('[data-action="import-data"]').on('click', 
-      this._onImportData.bind(this));
-    
-    // Exception management
-    html.find('[data-action="remove-exception"]').on('click', 
-      this._onRemoveException.bind(this));
-    
-    // Add selected token as exception
-    html.find('[data-action="add-exception"]').on('click', 
-      this._onAddException.bind(this));
+    htmlElement.addEventListener('click', this._onClickAction.bind(this));
     
     // Settings changes
-    html.find('[name="autoUpdate"]').on('change', 
-      this._onSettingChange.bind(this));
-    html.find('[name="overlayOpacity"]').on('input', 
-      this._onOpacityChange.bind(this));
+    htmlElement.addEventListener('change', this._onFormChange.bind(this));
+    htmlElement.addEventListener('input', this._onFormInput.bind(this));
+  }
+
+  /**
+   * Handle click events with data-action attributes
+   * 处理带有data-action属性的点击事件
+   */
+  _onClickAction(event) {
+    const action = event.target.closest('[data-action]')?.dataset.action;
+    if (!action) return;
+
+    switch (action) {
+      case 'toggle-edit-mode':
+        return this._onToggleEditMode(event);
+      case 'select-brush':
+        return this._onSelectBrush(event);
+      case 'set-custom-height':
+        return this._onSetCustomHeight(event);
+      case 'clear-all':
+        return this._onClearAll(event);
+      case 'export-data':
+        return this._onExportData(event);
+      case 'import-data':
+        return this._onImportData(event);
+      case 'remove-exception':
+        return this._onRemoveException(event);
+      case 'add-exception':
+        return this._onAddException(event);
+    }
+  }
+
+  /**
+   * Handle form change events
+   * 处理表单变化事件
+   */
+  _onFormChange(event) {
+    if (event.target.name === 'autoUpdate') {
+      return this._onSettingChange(event);
+    }
+  }
+
+  /**
+   * Handle form input events
+   * 处理表单输入事件
+   */
+  _onFormInput(event) {
+    if (event.target.name === 'overlayOpacity') {
+      return this._onOpacityChange(event);
+    }
   }
 
   /**
@@ -174,8 +240,8 @@ export default class MapHeightSidebar extends Application {
    */
    _onSelectBrush(event) {
     event.preventDefault();
-    const $target = $(event.currentTarget);
-    const height = parseInt($target.data('height'));
+    const target = event.target.closest('[data-action="select-brush"]');
+    const height = parseInt(target.dataset.height);
     this.currentBrushHeight = height;
     window.MapHeightEditor.currentBrushHeight = height;
     
@@ -194,8 +260,9 @@ export default class MapHeightSidebar extends Application {
   async _onSetCustomHeight(event) {
     event.preventDefault();
     
-    const $form = this.element;
-    const customHeight = parseInt($form.find('[name="customHeight"]').val());
+    const form = this.element.querySelector('form');
+    const customHeightInput = form.querySelector('[name="customHeight"]');
+    const customHeight = parseInt(customHeightInput.value);
     
     if (isNaN(customHeight) || !this.heightManager.validateHeight(customHeight)) {
       ui.notifications.warn("Invalid height value. Must be between -1000 and 1000.");
@@ -310,8 +377,8 @@ export default class MapHeightSidebar extends Application {
   async _onRemoveException(event) {
     event.preventDefault();
     
-    const $target = $(event.currentTarget);
-    const tokenId = $target.data('token-id');
+    const target = event.target.closest('[data-action="remove-exception"]');
+    const tokenId = target.dataset.tokenId;
     const success = await this.heightManager.removeTokenException(tokenId);
     
     if (success) {
@@ -325,9 +392,9 @@ export default class MapHeightSidebar extends Application {
    * 处理设置变化
    */
   async _onSettingChange(event) {
-    const $target = $(event.target);
-    const setting = $target.attr('name');
-    const value = $target.is(':checked');
+    const target = event.target;
+    const setting = target.name;
+    const value = target.checked;
     
     await game.settings.set(MODULE_ID, setting, value);
     
@@ -341,8 +408,8 @@ export default class MapHeightSidebar extends Application {
    * 处理透明度滑块变化
    */
   async _onOpacityChange(event) {
-    const $target = $(event.target);
-    const opacity = parseFloat($target.val());
+    const target = event.target;
+    const opacity = parseFloat(target.value);
     await game.settings.set(MODULE_ID, "overlayOpacity", opacity);
     
     // Update overlay if visible
