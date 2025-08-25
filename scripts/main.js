@@ -217,6 +217,12 @@ async function loadModuleComponents() {
     const HeightOverlay = await import('./ui/height-overlay.js');
     MapHeightEditor.HeightOverlay = HeightOverlay.default;
     
+    // Import debug helper (only in debug mode)
+    if (game.settings.get("core", "debug") || window.location.search.includes("debug")) {
+      const DebugHelper = await import('./debug-helper.js');
+      MapHeightEditor.DebugHelper = DebugHelper.default;
+    }
+    
     // HeightLayer is already imported during init in registerCanvasLayer()
     
     // const BrushTools = await import('./ui/brush-tools.js');
@@ -253,6 +259,11 @@ function initializeGMInterface() {
   
   // Set default brush height from settings
   MapHeightEditor.currentBrushHeight = game.settings.get(MODULE_ID, "defaultBrushHeight");
+  
+  // Install debug commands if available
+  if (MapHeightEditor.DebugHelper) {
+    MapHeightEditor.DebugHelper.installDebugCommands();
+  }
   
   console.log(`${MODULE_TITLE} | GM interface initialized successfully`);
 }

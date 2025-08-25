@@ -70,6 +70,9 @@ export default class HeightOverlay extends PIXI.Container {
     Hooks.on('canvasPan', this.onCanvasTransform.bind(this));
     Hooks.on('canvasZoom', this.onCanvasTransform.bind(this));
     
+    // Listen for scene updates (including padding changes)
+    Hooks.on('updateScene', this.onSceneUpdate.bind(this));
+    
     // Listen for settings changes
     Hooks.on('updateSetting', this.onSettingUpdate.bind(this));
   }
@@ -79,20 +82,21 @@ export default class HeightOverlay extends PIXI.Container {
    * 从canvas更新网格参数
    */
   updateGridParameters() {
-    if (!canvas || !canvas.grid) return;
+    if (!canvas || !canvas.grid || !canvas.scene) return;
     
     this.gridSize = canvas.grid.size;
-    // Handle different Foundry VTT versions for grid offset
-    if (canvas.grid.options) {
-      this.gridOffsetX = canvas.grid.options.offsetX || 0;
-      this.gridOffsetY = canvas.grid.options.offsetY || 0;
-    } else {
-      // Newer FVTT versions may not have options, use grid object directly
-      this.gridOffsetX = canvas.grid.x || 0;
-      this.gridOffsetY = canvas.grid.y || 0;
-    }
     
-    console.log(`${MODULE_ID} | Grid parameters updated: size=${this.gridSize}, offset=(${this.gridOffsetX}, ${this.gridOffsetY})`);
+    // Grid starts from top-left corner (0,0), no offset needed for padding
+    // Padding expands the canvas size, but grid placement starts from origin
+    this.gridOffsetX = 0;
+    this.gridOffsetY = 0;
+    
+    // Get padding percentage for viewport calculations
+    const padding = canvas.scene.padding || 0;
+    const sceneWidth = canvas.scene.width;
+    const sceneHeight = canvas.scene.height;
+    
+    console.log(`${MODULE_ID} | Grid parameters updated: size=${this.gridSize}, scene=(${sceneWidth}x${sceneHeight}), padding=${(padding * 100).toFixed(1)}%, offset=(${this.gridOffsetX}, ${this.gridOffsetY})`);
   }
 
   /**
@@ -151,25 +155,40 @@ export default class HeightOverlay extends PIXI.Container {
     const transform = stage.transform.worldTransform;
     const scale = transform.a; // Assuming uniform scaling
     
-    // Get scene dimensions
+    // Get scene dimensions and padding
     const sceneWidth = canvas.scene.width;
     const sceneHeight = canvas.scene.height;
-    const sceneCols = Math.ceil(sceneWidth / this.gridSize);
-    const sceneRows = Math.ceil(sceneHeight / this.gridSize);
+    const padding = canvas.scene.padding || 0; // padding as decimal (0.25 = 25%)
     
-    // Calculate viewport bounds
+    // Calculate total canvas dimensions including padding
+    // Padding is applied symmetrically in grid units, not pixels
+    // Formula: totalSize = originalSize + 2 × Math.ceil((originalSize × padding) / gridSize) × gridSize
+    const paddingGridsWidthPerSide = Math.ceil((sceneWidth * padding) / this.gridSize);
+    const paddingGridsHeightPerSide = Math.ceil((sceneHeight * padding) / this.gridSize);
+    const paddingWidthPerSide = paddingGridsWidthPerSide * this.gridSize;
+    const paddingHeightPerSide = paddingGridsHeightPerSide * this.gridSize;
+    const totalWidth = sceneWidth + 2 * paddingWidthPerSide;
+    const totalHeight = sceneHeight + 2 * paddingHeightPerSide;
+    
+    // Calculate total grid rows and columns to cover the expanded canvas
+    const totalCols = Math.ceil(totalWidth / this.gridSize);
+    const totalRows = Math.ceil(totalHeight / this.gridSize);
+    
+    // Calculate viewport bounds (no grid offset needed since we start from origin)
     const viewportLeft = Math.floor((-transform.tx / scale - this.gridSize) / this.gridSize);
     const viewportTop = Math.floor((-transform.ty / scale - this.gridSize) / this.gridSize);
     const viewportRight = Math.ceil((-transform.tx + bounds.width) / scale / this.gridSize) + 1;
     const viewportBottom = Math.ceil((-transform.ty + bounds.height) / scale / this.gridSize) + 1;
     
-    // Constrain to scene boundaries
+    // Constrain to total canvas boundaries (including padding)
     this.viewportBounds = {
       left: Math.max(0, viewportLeft),
       top: Math.max(0, viewportTop),
-      right: Math.min(sceneCols - 1, viewportRight),
-      bottom: Math.min(sceneRows - 1, viewportBottom)
+      right: Math.min(totalCols - 1, viewportRight),
+      bottom: Math.min(totalRows - 1, viewportBottom)
     };
+    
+    console.log(`${MODULE_ID} | Viewport updated: scene=(${sceneWidth}x${sceneHeight}), padding=${(padding * 100).toFixed(1)}% (${paddingGridsWidthPerSide}x${paddingGridsHeightPerSide} grids per side), total=(${totalWidth}x${totalHeight}), grid=(${totalCols}x${totalRows})`);
   }
 
   /**
@@ -366,6 +385,7 @@ export default class HeightOverlay extends PIXI.Container {
    * 处理网格指针抬起事件
    */
   onGridPointerUp(gridX, gridY, event) {
+    // Parameters needed for interface compatibility
     this.endDragOperation();
   }
 
@@ -374,6 +394,7 @@ export default class HeightOverlay extends PIXI.Container {
    * 处理全局指针抬起（在任何地方结束拖拽）
    */
   onGlobalPointerUp(event) {
+    // Event parameter needed for interface compatibility
     this.endDragOperation();
   }
 
@@ -464,6 +485,7 @@ export default class HeightOverlay extends PIXI.Container {
    * 处理网格悬停事件
    */
   onGridHover(gridX, gridY, event) {
+    // Event parameter needed for interface compatibility
     const element = this.gridElements.get(`${gridX},${gridY}`);
     if (element) {
       element.scale.set(1.1);
@@ -476,6 +498,7 @@ export default class HeightOverlay extends PIXI.Container {
    * 处理网格离开事件
    */
   onGridOut(gridX, gridY, event) {
+    // Event parameter needed for interface compatibility
     const element = this.gridElements.get(`${gridX},${gridY}`);
     if (element) {
       element.scale.set(1.0);
@@ -570,9 +593,10 @@ export default class HeightOverlay extends PIXI.Container {
    * Handle area height changes
    * 处理区域高度变化
    */
-  onAreaHeightChanged(gridPositions, height) {
+  onAreaHeightChanged(data) {
     if (!this.isVisible) return;
     
+    const { gridPositions, height } = data;
     gridPositions.forEach(pos => {
       const key = `${pos.x},${pos.y}`;
       if (this.gridElements.has(key)) {
@@ -591,6 +615,29 @@ export default class HeightOverlay extends PIXI.Container {
     // Update viewport and re-render
     this.updateViewport();
     this.renderVisibleGrids();
+  }
+
+  /**
+   * Handle scene updates (including padding changes)
+   * 处理场景更新（包括padding变化）
+   */
+  onSceneUpdate(scene, updateData, options, userId) {
+    // Parameters needed for interface compatibility
+    // Check if this is the current scene and if padding-related properties changed
+    if (scene.id === canvas?.scene?.id && 
+        (updateData.hasOwnProperty('padding') || 
+         updateData.hasOwnProperty('width') || 
+         updateData.hasOwnProperty('height') ||
+         updateData.hasOwnProperty('gridSize'))) {
+      
+      console.log(`${MODULE_ID} | Scene updated, refreshing grid parameters`);
+      
+      // Update grid parameters and refresh overlay
+      this.updateGridParameters();
+      if (this.isVisible) {
+        this.refresh();
+      }
+    }
   }
 
   /**
