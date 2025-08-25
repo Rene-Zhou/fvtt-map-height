@@ -34,7 +34,6 @@ export default class HeightManager {
     }
 
     this.loadHeightData();
-    console.log(`${MODULE_ID} | Height manager initialized for scene: ${this.scene.name}`);
     return true;
   }
 
@@ -65,7 +64,6 @@ export default class HeightManager {
       // Load enabled state
       this.enabled = flagData.enabled !== false; // Default to true
       
-      console.log(`${MODULE_ID} | Loaded ${this.gridHeights.size} grid heights and ${this.exceptTokens.size} token exceptions`);
       
     } catch (error) {
       console.error(`${MODULE_ID} | Error loading height data:`, error);
@@ -93,7 +91,6 @@ export default class HeightManager {
       };
 
       await this.scene.setFlag(MODULE_ID, "heightData", heightData);
-      console.log(`${MODULE_ID} | Height data saved successfully`);
       return true;
       
     } catch (error) {
@@ -110,8 +107,6 @@ export default class HeightManager {
   getGridHeight(gridX, gridY) {
     const key = this.getGridKey(gridX, gridY);
     const height = this.gridHeights.get(key) || 0;
-    console.log(`${MODULE_ID} | getGridHeight(${gridX}, ${gridY}): key="${key}", height=${height}`);
-    console.log(`${MODULE_ID} | Current grid data:`, Object.fromEntries(this.gridHeights));
     return height;
   }
 
@@ -120,7 +115,6 @@ export default class HeightManager {
    * 设置特定网格坐标的高度
    */
   async setGridHeight(gridX, gridY, height) {
-    console.log(`${MODULE_ID} | setGridHeight(${gridX}, ${gridY}, ${height})`);
     
     if (!this.validateGridCoordinates(gridX, gridY)) {
       console.warn(`${MODULE_ID} | Invalid grid coordinates: ${gridX}, ${gridY}`);
@@ -135,10 +129,8 @@ export default class HeightManager {
     const key = this.getGridKey(gridX, gridY);
     const oldHeight = this.gridHeights.get(key) || 0;
     
-    console.log(`${MODULE_ID} | Setting height: key="${key}", old=${oldHeight}, new=${height}`);
     
     if (oldHeight === height) {
-      console.log(`${MODULE_ID} | No change needed for grid (${gridX}, ${gridY})`);
       return true; // No change needed
     }
 
@@ -151,8 +143,6 @@ export default class HeightManager {
     const saved = await this.saveHeightData();
     
     if (saved) {
-      console.log(`${MODULE_ID} | Grid height updated: (${gridX}, ${gridY}) = ${height}`);
-      console.log(`${MODULE_ID} | Updated grid data:`, Object.fromEntries(this.gridHeights));
       
       // Trigger update event
       Hooks.callAll(`${MODULE_ID}.gridHeightChanged`, {
@@ -175,7 +165,6 @@ export default class HeightManager {
     
     try {
       const tokenDoc = token.document || token;
-      console.log(`${MODULE_ID} | Getting grid position for token at (${tokenDoc.x}, ${tokenDoc.y})`);
       
       // Get grid size and scene info for debugging
       const gridSize = canvas.grid.size;
@@ -183,7 +172,6 @@ export default class HeightManager {
       const sceneHeight = canvas.scene.height;
       const gridType = canvas.grid.type;
       
-      console.log(`${MODULE_ID} | Grid info: type=${gridType}, size=${gridSize}, scene=(${sceneWidth}x${sceneHeight})`);
       
       let gridCoords;
       
@@ -199,7 +187,6 @@ export default class HeightManager {
           const gridX = Math.floor(topLeft.x / gridSize);
           const gridY = Math.floor(topLeft.y / gridSize);
           v12Result = { i: gridX, j: gridY };
-          console.log(`${MODULE_ID} | Method 1 - v12 getTopLeftPoint: topLeft=(${topLeft.x}, ${topLeft.y}), grid=(${gridX}, ${gridY})`);
         } catch (error) {
           console.warn(`${MODULE_ID} | v12 getTopLeftPoint failed:`, error);
         }
@@ -210,7 +197,6 @@ export default class HeightManager {
         try {
           const offset = canvas.grid.getOffset({x: tokenDoc.x, y: tokenDoc.y});
           offsetResult = { i: offset.i, j: offset.j };
-          console.log(`${MODULE_ID} | Method 2 - legacy getOffset: (${offset.i}, ${offset.j})`);
         } catch (error) {
           console.warn(`${MODULE_ID} | getOffset failed:`, error);
         }
@@ -221,7 +207,6 @@ export default class HeightManager {
         i: Math.floor(tokenDoc.x / gridSize),
         j: Math.floor(tokenDoc.y / gridSize)
       };
-      console.log(`${MODULE_ID} | Method 3 - Manual calculation: (${manualResult.i}, ${manualResult.j})`);
       
       // Choose the most reliable result
       if (v12Result && offsetResult && manualResult) {
@@ -231,16 +216,13 @@ export default class HeightManager {
         const offsetSwapped = (Math.abs(offsetResult.i - manualResult.j) <= 1 && Math.abs(offsetResult.j - manualResult.i) <= 1);
         
         if (v12Manual && offsetManual) {
-          console.log(`${MODULE_ID} | All methods agree, using v12 result`);
           gridCoords = v12Result;
         } else if (v12Manual) {
           console.log(`${MODULE_ID} | v12 and manual agree, using v12 result`);
           gridCoords = v12Result;
         } else if (offsetManual) {
-          console.log(`${MODULE_ID} | offset and manual agree, using offset result`);
           gridCoords = offsetResult;
         } else if (offsetSwapped) {
-          console.log(`${MODULE_ID} | offset coordinates swapped, correcting`);
           gridCoords = { i: offsetResult.j, j: offsetResult.i };
         } else {
           console.warn(`${MODULE_ID} | Methods disagree, using manual calculation`);
@@ -258,10 +240,8 @@ export default class HeightManager {
       } else if (offsetResult && manualResult) {
         // Only offset and manual available
         if (Math.abs(offsetResult.i - manualResult.i) <= 1 && Math.abs(offsetResult.j - manualResult.j) <= 1) {
-          console.log(`${MODULE_ID} | offset and manual agree, using offset result`);
           gridCoords = offsetResult;
         } else if (Math.abs(offsetResult.i - manualResult.j) <= 1 && Math.abs(offsetResult.j - manualResult.i) <= 1) {
-          console.log(`${MODULE_ID} | offset coordinates swapped, correcting`);
           gridCoords = { i: offsetResult.j, j: offsetResult.i };
         } else {
           console.warn(`${MODULE_ID} | offset unreliable, using manual`);
@@ -269,7 +249,6 @@ export default class HeightManager {
         }
       } else {
         // Only manual available
-        console.log(`${MODULE_ID} | Using manual calculation fallback`);
         gridCoords = manualResult;
       }
       
@@ -289,7 +268,6 @@ export default class HeightManager {
         gridCoords.j = Math.min(gridCoords.j, maxGridY);
       }
       
-      console.log(`${MODULE_ID} | Final grid position: (${gridCoords.i}, ${gridCoords.j})`);
       
       return {
         i: gridCoords.i,
@@ -333,7 +311,6 @@ export default class HeightManager {
     const saved = await this.saveHeightData();
     
     if (saved) {
-      console.log(`${MODULE_ID} | Token ${tokenId} added to exception list`);
       Hooks.callAll(`${MODULE_ID}.tokenExceptionAdded`, tokenId);
     }
     
@@ -351,7 +328,6 @@ export default class HeightManager {
     const saved = await this.saveHeightData();
     
     if (saved) {
-      console.log(`${MODULE_ID} | Token ${tokenId} removed from exception list`);
       Hooks.callAll(`${MODULE_ID}.tokenExceptionRemoved`, tokenId);
     }
     
@@ -421,7 +397,6 @@ export default class HeightManager {
     if (changesMade) {
       const saved = await this.saveHeightData();
       if (saved) {
-        console.log(`${MODULE_ID} | Updated heights for ${gridPositions.length} grids`);
         Hooks.callAll(`${MODULE_ID}.areaHeightChanged`, gridPositions, height);
       }
       return saved;
@@ -439,7 +414,6 @@ export default class HeightManager {
     this.exceptTokens.clear();
     this.enabled = true;
     this.gridCache.clear();
-    console.log(`${MODULE_ID} | Height data reset`);
   }
 
   /**
@@ -559,7 +533,6 @@ export default class HeightManager {
       
       const saved = await this.saveHeightData();
       if (saved) {
-        console.log(`${MODULE_ID} | Height data imported successfully`);
         Hooks.callAll(`${MODULE_ID}.dataImported`, data);
       }
       

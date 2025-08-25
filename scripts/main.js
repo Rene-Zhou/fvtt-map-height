@@ -37,7 +37,6 @@ Hooks.once('init', async function() {
  * 设置钩子 - FVTT准备就绪时调用
  */
 Hooks.once('setup', async function() {
-  console.log(`${MODULE_TITLE} | Setting up module...`);
   
   // Import and initialize components
   await loadModuleComponents();
@@ -63,7 +62,6 @@ Hooks.once('ready', async function() {
 Hooks.on('canvasReady', async function() {
   if (!game.user.isGM) return;
   
-  console.log(`${MODULE_TITLE} | Canvas ready, reinitializing components for new scene`);
   
   // Reinitialize height manager for the new scene
   if (MapHeightEditor.heightManager) {
@@ -75,7 +73,6 @@ Hooks.on('canvasReady', async function() {
     MapHeightEditor.heightOverlay.updateGridParameters();
   }
   
-  console.log(`${MODULE_TITLE} | Components reinitialized for scene: ${canvas.scene?.name}`);
 });
 
 /**
@@ -149,7 +146,6 @@ async function registerCanvasLayer() {
       group: "interface"
     };
     
-    console.log(`${MODULE_TITLE} | Custom canvas layer registered`);
   } catch (error) {
     console.error(`${MODULE_TITLE} | Error registering canvas layer:`, error);
   }
@@ -237,7 +233,6 @@ async function loadModuleComponents() {
  * 初始化GM专用界面元素
  */
 function initializeGMInterface() {
-  console.log(`${MODULE_TITLE} | Initializing GM interface`);
   
   // Initialize height manager
   MapHeightEditor.heightManager = new MapHeightEditor.HeightManager();
@@ -265,7 +260,6 @@ function initializeGMInterface() {
     MapHeightEditor.DebugHelper.installDebugCommands();
   }
   
-  console.log(`${MODULE_TITLE} | GM interface initialized successfully`);
 }
 
 /**
@@ -276,7 +270,6 @@ function toggleHeightEditMode() {
   MapHeightEditor.isActive = !MapHeightEditor.isActive;
   
   if (MapHeightEditor.isActive) {
-    console.log(`${MODULE_TITLE} | Height edit mode activated`);
     // Show sidebar
     if (MapHeightEditor.sidebar) {
       MapHeightEditor.sidebar.render(true);
@@ -288,7 +281,6 @@ function toggleHeightEditMode() {
     // Show height overlay
     showHeightOverlay();
   } else {
-    console.log(`${MODULE_TITLE} | Height edit mode deactivated`);
     // Hide sidebar
     if (MapHeightEditor.sidebar) {
       MapHeightEditor.sidebar.close();
@@ -323,7 +315,6 @@ function openHeightSidebar() {
  */
 function setBrushHeight(height) {
   MapHeightEditor.currentBrushHeight = height;
-  console.log(`${MODULE_TITLE} | Brush height set to:`, height);
   
   // Update settings
   game.settings.set(MODULE_ID, "defaultBrushHeight", height);

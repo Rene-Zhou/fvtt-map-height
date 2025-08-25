@@ -54,7 +54,6 @@ export default class HeightOverlay extends PIXI.Container {
     // Hook into canvas events
     this.setupHooks();
     
-    console.log(`${MODULE_ID} | Height overlay initialized`);
   }
 
   /**
@@ -96,7 +95,6 @@ export default class HeightOverlay extends PIXI.Container {
     const sceneWidth = canvas.scene.width;
     const sceneHeight = canvas.scene.height;
     
-    console.log(`${MODULE_ID} | Grid parameters updated: size=${this.gridSize}, scene=(${sceneWidth}x${sceneHeight}), padding=${(padding * 100).toFixed(1)}%, offset=(${this.gridOffsetX}, ${this.gridOffsetY})`);
   }
 
   /**
@@ -122,7 +120,6 @@ export default class HeightOverlay extends PIXI.Container {
     this.updateViewport();
     this.renderVisibleGrids();
     
-    console.log(`${MODULE_ID} | Height overlay shown`);
   }
 
   /**
@@ -138,7 +135,6 @@ export default class HeightOverlay extends PIXI.Container {
     // Clear all grid elements
     this.clearAllGrids();
     
-    console.log(`${MODULE_ID} | Height overlay hidden`);
   }
 
   /**
@@ -188,7 +184,6 @@ export default class HeightOverlay extends PIXI.Container {
       bottom: Math.min(totalRows - 1, viewportBottom)
     };
     
-    console.log(`${MODULE_ID} | Viewport updated: scene=(${sceneWidth}x${sceneHeight}), padding=${(padding * 100).toFixed(1)}% (${paddingGridsWidthPerSide}x${paddingGridsHeightPerSide} grids per side), total=(${totalWidth}x${totalHeight}), grid=(${totalCols}x${totalRows})`);
   }
 
   /**
@@ -454,7 +449,6 @@ export default class HeightOverlay extends PIXI.Container {
       this.animateHeightChange(element);
     }
     
-    console.log(`${MODULE_ID} | Grid (${gridX}, ${gridY}) height painted to ${currentHeight}`);
   }
 
   /**
@@ -630,7 +624,6 @@ export default class HeightOverlay extends PIXI.Container {
          updateData.hasOwnProperty('height') ||
          updateData.hasOwnProperty('gridSize'))) {
       
-      console.log(`${MODULE_ID} | Scene updated, refreshing grid parameters`);
       
       // Update grid parameters and refresh overlay
       this.updateGridParameters();

@@ -30,7 +30,6 @@ export default class MapHeightLayer extends InteractionLayer {
    */
   activate() {
     super.activate();
-    console.log(`${MODULE_ID} | Map height layer activated`);
     
     // Show height overlay if height edit mode is active
     if (window.MapHeightEditor?.isActive && window.MapHeightEditor?.heightOverlay) {
@@ -46,7 +45,6 @@ export default class MapHeightLayer extends InteractionLayer {
    */
   deactivate() {
     super.deactivate();
-    console.log(`${MODULE_ID} | Map height layer deactivated`);
     
     // Hide height overlay
     if (window.MapHeightEditor?.heightOverlay) {
@@ -80,7 +78,6 @@ export default class MapHeightLayer extends InteractionLayer {
     const brushHeight = window.MapHeightEditor.currentBrushHeight || 0;
     window.MapHeightEditor.heightManager.setGridHeight(gridX, gridY, brushHeight);
     
-    console.log(`${MODULE_ID} | Set grid (${gridX}, ${gridY}) height to ${brushHeight}`);
   }
 
   /**
@@ -99,7 +96,6 @@ export default class MapHeightLayer extends InteractionLayer {
    */
   enableHeightEditMode() {
     this.isHeightEditMode = true;
-    console.log(`${MODULE_ID} | Height edit mode enabled on layer`);
   }
 
   /**
@@ -108,6 +104,5 @@ export default class MapHeightLayer extends InteractionLayer {
    */
   disableHeightEditMode() {
     this.isHeightEditMode = false;
-    console.log(`${MODULE_ID} | Height edit mode disabled on layer`);
   }
 }
