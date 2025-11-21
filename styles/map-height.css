@@ -99,8 +99,25 @@
 .map-height button .fas,
 .map-height button .far,
 .map-height button .fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
-  vertical-align: middle;
+  width: 1em;
+  height: 1em;
+}
+
+/* FontAwesome 伪元素对齐修复 - Fix FontAwesome pseudo-element alignment */
+.map-height button i::before,
+.map-height button .fas::before,
+.map-height button .far::before,
+.map-height button .fab::before {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  width: 100%;
+  height: 100%;
 }
 
 .map-height form {
@@ -181,7 +198,7 @@
 .map-height-brush {
   flex: 1;
   min-width: 50px;
-  padding: 8px;
+  padding: 8px 4px;
   border: 2px solid var(--color-border-light, #666);
   background: var(--color-bg-btn, rgba(255, 255, 255, 0.1));
   color: var(--color-text-primary, #f0f0e0);
@@ -194,6 +211,15 @@
   justify-content: center;
   gap: 4px;
   font-size: 0.8em;
+}
+
+.map-height-brush i {
+  flex-shrink: 0;
+  font-size: 1.2em;
+}
+
+.map-height-brush span {
+  line-height: 1;
 }
 
 .map-height-brush:hover {
@@ -273,11 +299,11 @@
   margin: 0;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
+  font-size: 14px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -291,12 +317,25 @@
 }
 
 .map-height-exception-remove i {
-  margin: 0;
-  padding: 0;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 1em !important;
+  height: 1em !important;
+}
+
+.map-height-exception-remove i::before {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* ========================================= */
