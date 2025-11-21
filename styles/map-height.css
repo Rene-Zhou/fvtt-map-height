@@ -198,7 +198,8 @@
 .map-height-brush {
   flex: 1;
   min-width: 50px;
-  padding: 8px 4px;
+  min-height: 60px;
+  padding: 10px 4px;
   border: 2px solid var(--color-border-light, #666);
   background: var(--color-bg-btn, rgba(255, 255, 255, 0.1));
   color: var(--color-text-primary, #f0f0e0);
@@ -209,7 +210,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   font-size: 0.8em;
 }
 
