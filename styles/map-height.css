@@ -131,6 +131,13 @@
   margin-bottom: 20px;
 }
 
+.map-height .map-height-header .flexrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .map-height .map-height-header h3 {
   margin: 0;
   font-size: 1.1em;
@@ -139,6 +146,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: 0 1 auto;
+  white-space: nowrap;
 }
 
 .map-height .map-height-edit-toggle {
