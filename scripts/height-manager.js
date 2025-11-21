@@ -49,14 +49,29 @@ export default class HeightManager {
    */
   updateGridParameters() {
     if (!canvas || !canvas.grid || !canvas.scene) return;
-    
+
     this.gridSize = canvas.grid.size;
-    
-    // Grid starts from top-left corner (0,0), no offset needed for padding
-    // Padding expands the canvas size, but grid placement starts from origin
-    // This matches the logic in height-overlay.js
-    this.gridOffsetX = 0;
-    this.gridOffsetY = 0;
+
+    // Calculate padding offset - scene origin in canvas coordinates
+    // Grid (0,0) should always point to scene (0,0), regardless of padding
+    // Padding adds extra space around the scene, shifting the scene's position in canvas
+    // 计算padding偏移量 - scene原点在canvas坐标系中的位置
+    // Grid (0,0) 应该始终指向 scene (0,0)，无论padding如何变化
+    // Padding在scene周围添加额外空间，使scene在canvas中的位置发生偏移
+    const padding = canvas.scene.padding || 0;
+    const sceneWidth = canvas.scene.width;
+    const sceneHeight = canvas.scene.height;
+
+    // Calculate padding in grid units, then convert to pixels
+    // Padding is applied symmetrically on all sides
+    const paddingGridsX = Math.ceil((sceneWidth * padding) / this.gridSize);
+    const paddingGridsY = Math.ceil((sceneHeight * padding) / this.gridSize);
+
+    // Grid offset = scene's top-left position in canvas coordinates
+    // This makes grid (0,0) always correspond to scene (0,0)
+    // Padding area will have negative grid coordinates (e.g., -1, -2)
+    this.gridOffsetX = paddingGridsX * this.gridSize;
+    this.gridOffsetY = paddingGridsY * this.gridSize;
   }
 
   /**

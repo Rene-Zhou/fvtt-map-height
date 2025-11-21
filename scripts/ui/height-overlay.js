@@ -82,19 +82,30 @@ export default class HeightOverlay extends PIXI.Container {
    */
   updateGridParameters() {
     if (!canvas || !canvas.grid || !canvas.scene) return;
-    
+
     this.gridSize = canvas.grid.size;
-    
-    // Grid starts from top-left corner (0,0), no offset needed for padding
-    // Padding expands the canvas size, but grid placement starts from origin
-    this.gridOffsetX = 0;
-    this.gridOffsetY = 0;
-    
-    // Get padding percentage for viewport calculations
+
+    // Calculate padding offset - scene origin in canvas coordinates
+    // Grid (0,0) should always point to scene (0,0), regardless of padding
+    // Padding adds extra space around the scene, shifting the scene's position in canvas
+    // 计算padding偏移量 - scene原点在canvas坐标系中的位置
+    // Grid (0,0) 应该始终指向 scene (0,0)，无论padding如何变化
+    // Padding在scene周围添加额外空间，使scene在canvas中的位置发生偏移
     const padding = canvas.scene.padding || 0;
     const sceneWidth = canvas.scene.width;
     const sceneHeight = canvas.scene.height;
-    
+
+    // Calculate padding in grid units, then convert to pixels
+    // Padding is applied symmetrically on all sides
+    const paddingGridsX = Math.ceil((sceneWidth * padding) / this.gridSize);
+    const paddingGridsY = Math.ceil((sceneHeight * padding) / this.gridSize);
+
+    // Grid offset = scene's top-left position in canvas coordinates
+    // This makes grid (0,0) always correspond to scene (0,0)
+    // Padding area will have negative grid coordinates (e.g., -1, -2)
+    this.gridOffsetX = paddingGridsX * this.gridSize;
+    this.gridOffsetY = paddingGridsY * this.gridSize;
+
   }
 
   /**
@@ -169,19 +180,32 @@ export default class HeightOverlay extends PIXI.Container {
     // Calculate total grid rows and columns to cover the expanded canvas
     const totalCols = Math.ceil(totalWidth / this.gridSize);
     const totalRows = Math.ceil(totalHeight / this.gridSize);
-    
-    // Calculate viewport bounds (no grid offset needed since we start from origin)
-    const viewportLeft = Math.floor((-transform.tx / scale - this.gridSize) / this.gridSize);
-    const viewportTop = Math.floor((-transform.ty / scale - this.gridSize) / this.gridSize);
-    const viewportRight = Math.ceil((-transform.tx + bounds.width) / scale / this.gridSize) + 1;
-    const viewportBottom = Math.ceil((-transform.ty + bounds.height) / scale / this.gridSize) + 1;
-    
-    // Constrain to total canvas boundaries (including padding)
+
+    // Calculate viewport bounds in canvas coordinates, then convert to grid coordinates
+    // Grid coordinates are relative to scene origin, so we need to account for gridOffset
+    const canvasViewportLeft = -transform.tx / scale - this.gridSize;
+    const canvasViewportTop = -transform.ty / scale - this.gridSize;
+    const canvasViewportRight = (-transform.tx + bounds.width) / scale + this.gridSize;
+    const canvasViewportBottom = (-transform.ty + bounds.height) / scale + this.gridSize;
+
+    // Convert canvas coordinates to grid coordinates (grid relative to scene)
+    const viewportLeft = Math.floor((canvasViewportLeft - this.gridOffsetX) / this.gridSize);
+    const viewportTop = Math.floor((canvasViewportTop - this.gridOffsetY) / this.gridSize);
+    const viewportRight = Math.ceil((canvasViewportRight - this.gridOffsetX) / this.gridSize);
+    const viewportBottom = Math.ceil((canvasViewportBottom - this.gridOffsetY) / this.gridSize);
+
+    // Calculate grid bounds including padding area (padding area has negative coordinates)
+    const minGridX = -paddingGridsWidthPerSide;
+    const minGridY = -paddingGridsHeightPerSide;
+    const maxGridX = Math.ceil(sceneWidth / this.gridSize) + paddingGridsWidthPerSide - 1;
+    const maxGridY = Math.ceil(sceneHeight / this.gridSize) + paddingGridsHeightPerSide - 1;
+
+    // Constrain to total canvas boundaries (including padding area)
     this.viewportBounds = {
-      left: Math.max(0, viewportLeft),
-      top: Math.max(0, viewportTop),
-      right: Math.min(totalCols - 1, viewportRight),
-      bottom: Math.min(totalRows - 1, viewportBottom)
+      left: Math.max(minGridX, viewportLeft),
+      top: Math.max(minGridY, viewportTop),
+      right: Math.min(maxGridX, viewportRight),
+      bottom: Math.min(maxGridY, viewportBottom)
     };
     
   }

@@ -56,8 +56,9 @@ export default class DebugHelper {
         originalSize: `${sceneWidth}x${sceneHeight}`,
         totalSize: `${totalWidth}x${totalHeight}`,
         gridCoverage: `${totalCols}x${totalRows} grids`,
-        gridOffsetX: 0, // Always 0 - grid starts from origin
-        gridOffsetY: 0  // Always 0 - grid starts from origin
+        gridOffsetX: paddingWidthPerSide, // Scene origin offset in canvas
+        gridOffsetY: paddingHeightPerSide, // Grid (0,0) = Scene (0,0)
+        note: 'Grid (0,0) corresponds to Scene (0,0). Padding area uses negative grid coords.'
       });
       
       console.groupEnd();
@@ -187,20 +188,22 @@ export default class DebugHelper {
     console.log(`Scene: ${scene.width}x${scene.height}, Padding: ${(padding * 100).toFixed(1)}%`);
     console.log(`Total Canvas: ${totalWidth}x${totalHeight}`);
     
-    // Test corner points
+    // Test corner points with NEW coordinate system (Grid relative to Scene)
     const testPoints = [
-      { name: "Top-Left Corner", x: 0, y: 0 },
-      { name: "Top-Right Corner", x: totalWidth - 1, y: 0 },
-      { name: "Bottom-Left Corner", x: 0, y: totalHeight - 1 },
-      { name: "Bottom-Right Corner", x: totalWidth - 1, y: totalHeight - 1 },
-      { name: "Original Scene Top-Left", x: paddingWidthPerSide, y: paddingHeightPerSide },
-      { name: "Original Scene Bottom-Right", x: paddingWidthPerSide + scene.width - 1, y: paddingHeightPerSide + scene.height - 1 }
+      { name: "Canvas Top-Left Corner", x: 0, y: 0 },
+      { name: "Canvas Top-Right Corner", x: totalWidth - 1, y: 0 },
+      { name: "Canvas Bottom-Left Corner", x: 0, y: totalHeight - 1 },
+      { name: "Canvas Bottom-Right Corner", x: totalWidth - 1, y: totalHeight - 1 },
+      { name: "Scene Top-Left (0,0)", x: paddingWidthPerSide, y: paddingHeightPerSide },
+      { name: "Scene Bottom-Right", x: paddingWidthPerSide + scene.width - 1, y: paddingHeightPerSide + scene.height - 1 }
     ];
-    
+
+    console.log('\n--- Coordinate System: Grid (0,0) = Scene (0,0) ---');
     testPoints.forEach(point => {
-      const gridX = Math.floor(point.x / gridSize);
-      const gridY = Math.floor(point.y / gridSize);
-      console.log(`${point.name}: World(${Math.ceil(point.x)}, ${Math.ceil(point.y)}) -> Grid(${gridX}, ${gridY})`);
+      // Canvas coordinates to Grid coordinates (with offset)
+      const gridX = Math.floor((point.x - paddingWidthPerSide) / gridSize);
+      const gridY = Math.floor((point.y - paddingHeightPerSide) / gridSize);
+      console.log(`${point.name}: Canvas(${Math.ceil(point.x)}, ${Math.ceil(point.y)}) -> Grid(${gridX}, ${gridY})`);
     });
     
     console.groupEnd();
