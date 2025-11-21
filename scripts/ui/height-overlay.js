@@ -627,6 +627,12 @@ export default class HeightOverlay extends PIXI.Container {
       
       // Update grid parameters and refresh overlay
       this.updateGridParameters();
+      
+      // Also update height-manager grid parameters to keep them in sync
+      if (window.MapHeightEditor?.heightManager) {
+        window.MapHeightEditor.heightManager.updateGridParameters();
+      }
+      
       if (this.isVisible) {
         this.refresh();
       }

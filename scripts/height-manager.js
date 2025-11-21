@@ -20,6 +20,11 @@ export default class HeightManager {
     this.gridCache = new Map();
     this.lastCacheUpdate = 0;
     this.cacheTimeout = 1000; // 1 second cache timeout
+    
+    // Grid parameters (synchronized with height-overlay)
+    this.gridSize = 100;
+    this.gridOffsetX = 0;
+    this.gridOffsetY = 0;
   }
 
   /**
@@ -34,7 +39,24 @@ export default class HeightManager {
     }
 
     this.loadHeightData();
+    this.updateGridParameters();
     return true;
+  }
+
+  /**
+   * Update grid parameters to sync with height-overlay
+   * 更新网格参数以与height-overlay同步
+   */
+  updateGridParameters() {
+    if (!canvas || !canvas.grid || !canvas.scene) return;
+    
+    this.gridSize = canvas.grid.size;
+    
+    // Grid starts from top-left corner (0,0), no offset needed for padding
+    // Padding expands the canvas size, but grid placement starts from origin
+    // This matches the logic in height-overlay.js
+    this.gridOffsetX = 0;
+    this.gridOffsetY = 0;
   }
 
   /**
@@ -203,9 +225,10 @@ export default class HeightManager {
       }
       
       // Method 3: Manual calculation (always works)
+      // Use same formula as height-overlay.js for consistency
       manualResult = {
-        i: Math.floor(tokenDoc.x / gridSize),
-        j: Math.floor(tokenDoc.y / gridSize)
+        i: Math.floor((tokenDoc.x - this.gridOffsetX) / this.gridSize),
+        j: Math.floor((tokenDoc.y - this.gridOffsetY) / this.gridSize)
       };
       
       // Choose the most reliable result
@@ -259,11 +282,20 @@ export default class HeightManager {
         gridCoords.j = Math.max(0, gridCoords.j);
       }
       
-      const maxGridX = Math.ceil(sceneWidth / gridSize) - 1;
-      const maxGridY = Math.ceil(sceneHeight / gridSize) - 1;
+      // Calculate total grid bounds including padding
+      const padding = canvas.scene.padding || 0;
+      const paddingGridsWidthPerSide = Math.ceil((sceneWidth * padding) / this.gridSize);
+      const paddingGridsHeightPerSide = Math.ceil((sceneHeight * padding) / this.gridSize);
+      const paddingWidthPerSide = paddingGridsWidthPerSide * this.gridSize;
+      const paddingHeightPerSide = paddingGridsHeightPerSide * this.gridSize;
+      const totalWidth = sceneWidth + 2 * paddingWidthPerSide;
+      const totalHeight = sceneHeight + 2 * paddingHeightPerSide;
+      
+      const maxGridX = Math.ceil(totalWidth / this.gridSize) - 1;
+      const maxGridY = Math.ceil(totalHeight / this.gridSize) - 1;
       
       if (gridCoords.i > maxGridX || gridCoords.j > maxGridY) {
-        console.warn(`${MODULE_ID} | Grid coordinates exceed scene bounds, clamping`);
+        console.warn(`${MODULE_ID} | Grid coordinates exceed canvas bounds (including padding), clamping`);
         gridCoords.i = Math.min(gridCoords.i, maxGridX);
         gridCoords.j = Math.min(gridCoords.j, maxGridY);
       }
