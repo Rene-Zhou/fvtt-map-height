@@ -44,7 +44,7 @@ A Foundry VTT module for editing map ground heights and automatically managing t
 
 - **Foundry VTT**: Version 12.343 or higher
 - **Game System**: Any (system-agnostic)
-- **Map Type**: Grid-based maps (square or hex grids)
+- **Map Type**: Grid-based maps (square grids)
 
 ## Usage
 
@@ -87,7 +87,3 @@ A Foundry VTT module for editing map ground heights and automatically managing t
 - **Default**: 0
 - **Range**: -1000 to 1000
 - **Description**: The default height value when the module is first activated
-
-## License
-
-This module is licensed under the [MIT License](LICENSE).
