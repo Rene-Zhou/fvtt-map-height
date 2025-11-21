@@ -2,12 +2,13 @@
   "MAP_HEIGHT": {
     "ModuleTitle": "Map Height Editor",
     "Settings": {
+      "Title": "Settings",
       "AutoUpdateTokens": {
         "Name": "Auto Update Token Heights",
         "Hint": "Automatically update token elevations when they move to different height grids"
       },
       "OverlayOpacity": {
-        "Name": "Height Overlay Opacity", 
+        "Name": "Height Overlay Opacity",
         "Hint": "Opacity of the height number overlay (0-1)"
       },
       "DefaultBrushHeight": {
@@ -18,6 +19,7 @@
     "Controls": {
       "HeightEditMode": "Height Edit Mode",
       "HeightBrush": "Height Brush",
+      "CurrentBrush": "Current Brush",
       "ExceptionList": "Flying Units Exception List"
     },
     "Tooltips": {
@@ -25,7 +27,11 @@
       "SetHeight0": "Set height to 0 (water level)",
       "SetHeight5": "Set height to 5 (low elevation)",
       "SetHeight10": "Set height to 10 (high elevation)",
-      "CustomHeight": "Set custom height value"
+      "CustomHeight": "Set custom height value",
+      "AddException": "Add selected token(s) to exception list",
+      "ExportData": "Export height data to JSON file",
+      "ImportData": "Import height data from JSON file",
+      "ClearAll": "Clear all height data"
     },
     "Dialog": {
       "CustomHeight": {
@@ -38,8 +44,23 @@
         "Title": "Manage Flying Units",
         "AddException": "Add Exception",
         "RemoveException": "Remove Exception",
-        "NoTokenSelected": "No token selected"
+        "NoTokenSelected": "No token selected",
+        "NoExceptions": "No flying units configured"
       }
+    },
+    "DataManagement": {
+      "Title": "Data Management",
+      "ExportData": "Export Data",
+      "ImportData": "Import Data",
+      "ClearAll": "Clear All"
+    },
+    "Help": {
+      "Title": "How to Use",
+      "Step1": "Click \"Height Edit Mode\" to activate editing",
+      "Step2": "Select a brush height from the toolbar",
+      "Step3": "Click on grid squares to set their height",
+      "Step4": "Tokens will automatically update their elevation",
+      "Step5": "Add flying units to the exception list to prevent auto-updates"
     },
     "Notifications": {
       "HeightModeActivated": "Height edit mode activated",
