@@ -127,13 +127,15 @@
 
 .map-height .map-height-header {
   border-bottom: 1px solid var(--color-border-light);
-  padding-bottom: 8px;
-  margin-bottom: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .map-height .map-height-header h3 {
   margin: 0;
   font-size: 1.1em;
+  font-family: "Microsoft YaHei", "SimHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-weight: bold;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -170,6 +172,8 @@
 .map-height .map-height-brushes h4 {
   margin: 0 0 8px 0;
   font-size: 0.95em;
+  font-family: "Microsoft YaHei", "SimHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-weight: bold;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -517,7 +521,8 @@
 .map-height .map-height-data-management h4 {
   margin: 0 0 6px 0;
   font-size: 0.95em;
-  font-weight: 600;
+  font-family: "Microsoft YaHei", "SimHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-weight: bold;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -674,6 +679,7 @@
 
 .map-height-help summary {
   cursor: pointer;
+  font-family: "Microsoft YaHei", "SimHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
   font-weight: bold;
   font-size: 0.9em;
   display: flex;
