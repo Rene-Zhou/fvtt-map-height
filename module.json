@@ -27,9 +27,9 @@
       "path": "lang/en.json"
     },
     {
-      "lang": "zh",
+      "lang": "cn",
       "name": "中文",
-      "path": "lang/zh.json"
+      "path": "lang/cn.json"
     }
   ],
   "flags": {
