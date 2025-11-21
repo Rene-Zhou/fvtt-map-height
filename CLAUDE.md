@@ -63,7 +63,7 @@ fvtt-map-height/
 │   └── map-height.css          # All module styles (600+ lines)
 └── lang/
     ├── en.json                 # English translations
-    └── zh.json                 # Chinese translations
+    └── cn.json                 # Chinese translations
 ```
 
 ### File Purpose Quick Reference
@@ -647,7 +647,7 @@ async _onNewFeature(event) {
 }
 ```
 
-5. **Add translations** (`lang/en.json`, `lang/zh.json`):
+5. **Add translations** (`lang/en.json`, `lang/cn.json`):
 ```json
 {
   "MAP_HEIGHT": {
@@ -1197,7 +1197,7 @@ When modifying code, check if you need to update:
 - [ ] **Code** - The JavaScript implementation
 - [ ] **Template** - The Handlebars UI template
 - [ ] **Styles** - CSS for visual changes
-- [ ] **Translations** - Both en.json and zh.json
+- [ ] **Translations** - Both en.json and cn.json
 - [ ] **Validation** - Input validation logic
 - [ ] **Hooks** - Fire custom hooks for changes
 - [ ] **Documentation** - Update this file if architecture changes

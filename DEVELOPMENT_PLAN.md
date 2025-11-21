@@ -90,7 +90,7 @@ fvtt-map-height/
 │   └── map-height.css         # 样式文件
 ├── lang/
 │   ├── en.json               # 英文语言包
-│   └── zh.json               # 中文语言包
+│   └── cn.json               # 中文语言包
 └── DEVELOPMENT_PLAN.md       # 本文档
 ```
 
