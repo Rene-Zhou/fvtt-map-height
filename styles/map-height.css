@@ -10,7 +10,9 @@
 /* ApplicationV2自动处理主题，我们只需要设置内容样式 */
 .map-height .window-content {
   padding: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 80vh;
 }
 
 .map-height form {
@@ -92,6 +94,15 @@
 /* ApplicationV2 内容样式 - ApplicationV2 Content Styles */
 /* ========================================= */
 
+/* 全局按钮图标对齐 - Global button icon alignment */
+.map-height button i,
+.map-height button .fas,
+.map-height button .far,
+.map-height button .fab {
+  line-height: 1;
+  vertical-align: middle;
+}
+
 .map-height form {
   padding: 12px;
   gap: 8px;
@@ -120,6 +131,9 @@
   cursor: pointer;
   font-size: 0.8em;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .map-height-edit-toggle.active {
@@ -177,7 +191,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 4px;
   font-size: 0.8em;
 }
 
@@ -255,11 +270,14 @@
   border: 1px solid #E57373;
   color: white;
   padding: 0;
+  margin: 0;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   width: 24px;
   height: 24px;
+  min-width: 24px;
+  min-height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,7 +292,11 @@
 
 .map-height-exception-remove i {
   margin: 0;
-  text-align: center;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ========================================= */
@@ -417,10 +439,19 @@
   border-radius: 3px;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
 }
 
 .map-height .map-height-custom-input button:hover {
   background: var(--color-bg-btn-hover);
+}
+
+.map-height .map-height-custom-input button i {
+  margin: 0;
+  padding: 0;
 }
 
 .current-brush-display {
@@ -433,18 +464,16 @@
   color: var(--color-text-primary, #f0f0e0);
 }
 
-.map-height .map-height-settings, 
-.map-height .map-height-stats, 
-.map-height .map-height-exceptions, 
+.map-height .map-height-settings,
+.map-height .map-height-exceptions,
 .map-height .map-height-data-management {
   margin-bottom: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--color-border-light);
 }
 
-.map-height .map-height-settings h4, 
-.map-height .map-height-stats h4, 
-.map-height .map-height-exceptions h4, 
+.map-height .map-height-settings h4,
+.map-height .map-height-exceptions h4,
 .map-height .map-height-data-management h4 {
   margin: 0 0 6px 0;
   font-size: 0.95em;
@@ -477,22 +506,35 @@
   margin-top: 4px;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  font-size: 0.85em;
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 2px 0;
-  color: var(--color-text-primary, #f0f0e0);
-}
-
 .exception-controls {
   margin-bottom: 8px;
+}
+
+.exception-controls button {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-bg-btn);
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.85em;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.exception-controls button:hover {
+  background: var(--color-bg-btn-hover);
+}
+
+.exception-controls button i {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .exception-list {
@@ -557,7 +599,8 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 8px;
   font-size: 0.85em;
   transition: all 0.2s ease;
 }
@@ -565,6 +608,14 @@
 .map-height .data-controls button:hover {
   background: var(--color-bg-btn-hover);
   transform: translateY(-1px);
+}
+
+.map-height .data-controls button i {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .map-height .data-controls button.danger {

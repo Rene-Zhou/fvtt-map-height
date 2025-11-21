@@ -31,7 +31,7 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
       title: "MAP_HEIGHT.ModuleTitle",
       icon: "fas fa-mountain",
       minimizable: true,
-      resizable: false
+      resizable: true
     },
     position: {
       width: 320,
@@ -104,10 +104,7 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
         { value: 15, label: "High", icon: "fas fa-mountain", color: "#F06292" },
         { value: 20, label: "Peak", icon: "fas fa-mountain", color: "#9575CD" }
       ],
-      
-      // Statistics
-      stats: this.heightManager ? this.heightManager.getStatistics() : null,
-      
+
       // Exception tokens
       exceptionTokens: this.getExceptionTokenList()
     };
