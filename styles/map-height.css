@@ -878,8 +878,9 @@
 }
 
 .brush-quick-btn {
-  flex: 1;
-  padding: 8px 12px;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 8px;
   border: 1px solid;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.05);

@@ -79,8 +79,8 @@
       "EditMode": "编辑模式：开启",
       "Close": "关闭画笔显示器",
       "CloseEditMode": "退出编辑模式",
-      "Increment": "增加高度 5",
-      "Decrement": "减少高度 5",
+      "Increment": "增加高度 1",
+      "Decrement": "减少高度 1",
       "Zero": "设置高度为 0"
     },
     "KeyboardShortcuts": {

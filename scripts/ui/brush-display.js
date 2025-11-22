@@ -232,10 +232,10 @@ export default class BrushDisplay {
 
     switch (action) {
       case 'increment':
-        newHeight = this.currentHeight + 5;
+        newHeight = this.currentHeight + 1;
         break;
       case 'decrement':
-        newHeight = this.currentHeight - 5;
+        newHeight = this.currentHeight - 1;
         break;
       case 'zero':
         newHeight = 0;
