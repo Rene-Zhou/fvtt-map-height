@@ -770,7 +770,7 @@
   border: 1px solid #E57373;
   border-radius: 3px;
   color: white;
-  padding: 2px 6px;
+  padding: 0;
   cursor: pointer;
   font-size: 0.8em;
   transition: all 0.2s ease;
@@ -781,6 +781,25 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  line-height: 1;
+}
+
+.brush-display-close i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+}
+
+.brush-display-close i::before {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
 }
 
 .brush-display-close:hover {
