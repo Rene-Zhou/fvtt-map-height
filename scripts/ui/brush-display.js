@@ -193,10 +193,15 @@ export default class BrushDisplay {
 
     // Switch to tokens layer, which will automatically deactivate mapheight layer
     // 切换到tokens层，这会自动停用mapheight层
-    if (window.MapHeightEditor?.isActive && ui.controls) {
-      // Switch to the default tokens control
+    if (window.MapHeightEditor?.isActive) {
+      // Activate the tokens layer directly
       // This triggers the mapheight layer's deactivate() method
-      ui.controls.initialize({ tool: "select", layer: "tokens" });
+      canvas.tokens?.activate();
+
+      // Update UI controls to reflect the change
+      if (ui.controls) {
+        ui.controls.initialize({ control: "token", tool: "select" });
+      }
     }
   }
 
