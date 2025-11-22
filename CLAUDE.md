@@ -23,19 +23,22 @@ This document provides comprehensive guidance for AI assistants working on the F
 A Foundry VTT v12.343+ module that enables Game Masters to paint ground heights on grid-based maps and automatically manages token elevations based on their grid positions. Essential for maps with cliffs, elevated platforms, and multi-level terrain.
 
 ### Core Features
+- **One-Click Activation**: Single button in scene controls to enter/exit edit mode
+- **Canvas Brush Display**: Floating, draggable window showing current brush height with quick adjustment buttons
+- **Keyboard Shortcuts**: Arrow keys, +/-, and 0 key for rapid height adjustments
 - **Height Painting**: Click or drag to paint height values on grid squares
 - **Automatic Token Elevation**: Tokens automatically update elevation when moving
-- **Flying Units Exception List**: Manage tokens that ignore auto-height updates
+- **Automatic Flying Detection**: D&D 5e fly speed detection, active effects parsing, token status detection
 - **Visual Overlay**: PIXI-based canvas overlay showing height values with color coding
-- **Data Management**: Import/export height data for backup and sharing
-- **Real-time Statistics**: Track grid coverage, height ranges, and exceptions
+- **Data Management**: Import/export/clear height data through settings menu
+- **Layer-Based Edit Mode**: Integrates seamlessly with Foundry's canvas layer system
 
 ### Technology Stack
 - **Platform**: Foundry VTT v12.343+
 - **Language**: Pure ES6 Modules (no build process)
-- **UI Framework**: ApplicationV2 (Foundry's modern UI framework)
+- **UI Framework**: Canvas Layer System + PIXI.js overlays (no ApplicationV2 sidebar)
 - **Rendering**: PIXI.js (Foundry's canvas engine)
-- **Templates**: Handlebars
+- **Templates**: Handlebars (for data management dialog only)
 - **Storage**: Scene Flags (persistent per-scene data)
 - **Internationalization**: English and Chinese (中文)
 
@@ -46,21 +49,22 @@ A Foundry VTT v12.343+ module that enables Game Masters to paint ground heights 
 ```
 fvtt-map-height/
 ├── module.json                  # Module manifest and configuration
-├── DEVELOPMENT_PLAN.md          # Chinese development plan (reference doc)
+├── README.md                    # User documentation
 ├── CLAUDE.md                    # This file - AI assistant guide
 ├── scripts/
-│   ├── main.js                 # Module entry point and initialization
+│   ├── main.js                 # Module entry point, layer registration, scene controls
 │   ├── height-manager.js       # Core data management layer
-│   ├── token-automation.js     # Automatic token elevation logic
+│   ├── token-automation.js     # Automatic token elevation + flying detection
+│   ├── keyboard-handler.js     # Keyboard shortcut system
 │   ├── debug-helper.js         # Development debugging utilities
 │   └── ui/
-│       ├── sidebar-control.js  # ApplicationV2 sidebar interface
+│       ├── brush-display.js    # Canvas overlay brush height display
 │       ├── height-overlay.js   # PIXI canvas overlay renderer
 │       └── height-layer.js     # Custom canvas interaction layer
 ├── templates/
-│   └── sidebar-control.hbs     # Handlebars template for sidebar UI
+│   └── data-management.hbs     # Data import/export/clear dialog
 ├── styles/
-│   └── map-height.css          # All module styles (600+ lines)
+│   └── map-height.css          # All module styles (900+ lines)
 └── lang/
     ├── en.json                 # English translations
     └── cn.json                 # Chinese translations
@@ -70,12 +74,13 @@ fvtt-map-height/
 
 | File | Primary Responsibility | When to Modify |
 |------|----------------------|----------------|
-| `main.js` | Module initialization, hook registration, global state | Adding new hooks, global features |
+| `main.js` | Module initialization, scene controls, layer registration | Adding new hooks, controls, settings |
 | `height-manager.js` | Data CRUD, grid calculations, scene flag management | Changing data structure, grid logic |
-| `token-automation.js` | Token movement tracking, elevation updates | Modifying auto-update behavior |
-| `sidebar-control.js` | ApplicationV2 UI, user interactions | Adding UI features, settings |
+| `token-automation.js` | Token movement tracking, elevation updates, flying detection | Modifying auto-update, detection logic |
+| `brush-display.js` | Canvas overlay with brush height, quick buttons, drag support | Changing brush display UI |
+| `keyboard-handler.js` | Keyboard shortcuts for height adjustment | Adding/modifying shortcuts |
 | `height-overlay.js` | PIXI rendering, visual overlay, viewport culling | Changing visual appearance, performance |
-| `height-layer.js` | Canvas layer integration, click handling | Canvas interaction changes |
+| `height-layer.js` | Canvas layer integration, activate/deactivate logic | Canvas interaction, edit mode lifecycle |
 | `debug-helper.js` | Debug commands and testing utilities | Adding debug features |
 
 ---
@@ -85,19 +90,20 @@ fvtt-map-height/
 ### Four-Layer Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  UI Control Layer (sidebar-control.js, height-layer.js) │
-│  - User interactions, settings, controls                │
-└─────────────────────┬───────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  UI Control Layer (height-layer.js, brush-display.js,          │
+│                     keyboard-handler.js)                        │
+│  - Canvas layer lifecycle, user interactions, keyboard input   │
+└─────────────────────┬───────────────────────────────────────────┘
                       │
-┌─────────────────────▼───────────────────────────────────┐
-│  Rendering Layer (height-overlay.js)                    │
-│  - PIXI visualization, viewport culling                 │
-└─────────────────────┬───────────────────────────────────┘
+┌─────────────────────▼───────────────────────────────────────────┐
+│  Rendering Layer (height-overlay.js, brush-display.js)         │
+│  - PIXI visualization, viewport culling, brush display         │
+└─────────────────────┬───────────────────────────────────────────┘
                       │
-┌─────────────────────▼───────────────────────────────────┐
-│  Logic Layer (token-automation.js, main.js)             │
-│  - Token tracking, event handling, business logic       │
+┌─────────────────────▼───────────────────────────────────────────┐
+│  Logic Layer (token-automation.js, main.js)                     │
+│  - Token tracking, flying detection, event handling             │
 └─────────────────────┬───────────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────────┐
@@ -350,8 +356,145 @@ CONFIG.Canvas.layers.mapheight = {
 
 **Layer Configuration**:
 - Z-index: 220 (between drawings and notes)
-- Activates height overlay when selected
+- Activates edit mode when layer is activated
+- Deactivates edit mode when layer is deactivated
 - Handles left-click events for painting
+
+**Edit Mode Lifecycle**:
+```javascript
+activate() {
+  // Called when Map Height Editor button is clicked
+  window.MapHeightEditor.isActive = true;
+  this.isHeightEditMode = true;
+
+  // Show UI components
+  heightOverlay.show();
+  brushDisplay.show();
+  keyboardHandler.enable();
+
+  // Fire hook and notify user
+  Hooks.callAll("fvtt-map-height.editModeChanged", true);
+  ui.notifications.info("Height edit mode activated");
+}
+
+deactivate() {
+  // Only proceed if was actually active (prevents spurious notifications)
+  if (!window.MapHeightEditor.isActive) return;
+
+  // Hide UI and clean up
+  heightOverlay.hide();
+  brushDisplay.hide();
+  keyboardHandler.disable();
+
+  // Fire hook and notify user
+  Hooks.callAll("fvtt-map-height.editModeChanged", false);
+  ui.notifications.info("Height edit mode deactivated");
+}
+```
+
+### BrushDisplay (Canvas Overlay UI)
+**Location**: `scripts/ui/brush-display.js`
+
+**Purpose**: Floating canvas overlay showing current brush height with quick adjustment controls
+
+**Key Features**:
+- Draggable PIXI.Container positioned on canvas
+- Color-coded height display (blue=0, green=positive, red=negative)
+- Quick action buttons: +1, 0 (zero), -1
+- Pulse animation on height changes
+- Persistent position (saved to client settings)
+- × button exits edit mode (switches to tokens layer)
+
+**Critical Methods**:
+```javascript
+// Show/hide display
+show() / hide()
+
+// Update brush height and color coding
+updateHeight(newHeight)
+
+// Handle drag to reposition
+onDragStart(event) / onDrag(event) / onDragEnd(event)
+
+// Quick adjustment buttons
+onQuickAction(action) // 'increment', 'decrement', 'zero'
+
+// Close button - exits edit mode entirely
+onCloseEditMode(event) {
+  canvas.tokens?.activate(); // Switch to tokens layer
+  ui.controls.initialize({ control: "token", tool: "select" });
+}
+```
+
+**HTML Structure**:
+```javascript
+this.element.innerHTML = `
+  <div class="brush-display-header">
+    <i class="fas fa-paint-brush"></i>
+    <span class="brush-display-title">Height Brush</span>
+    <button class="brush-display-close">×</button>
+  </div>
+  <div class="brush-display-body">
+    <div class="brush-height-value">0</div>
+    <div class="brush-height-bar"></div>
+  </div>
+  <div class="brush-display-controls">
+    <button class="brush-quick-btn positive">+</button>
+    <button class="brush-quick-btn zero">0</button>
+    <button class="brush-quick-btn negative">-</button>
+  </div>
+`;
+```
+
+### KeyboardHandler (Input Manager)
+**Location**: `scripts/keyboard-handler.js`
+
+**Purpose**: Manages keyboard shortcuts for brush height adjustment
+
+**Keyboard Shortcuts**:
+- **Arrow Up/Down**: ±10
+- **Arrow Left/Right**: ±5
+- **Plus/Minus (+/-)**: ±1
+- **Digit 0**: Set to 0
+
+**Key Features**:
+- Only active during edit mode
+- Disabled when input fields have focus (prevents conflicts)
+- Updates both global brush height and brush display
+- Shows visual feedback (floating indicators optional)
+- Can be enabled/disabled via client setting
+
+**Critical Methods**:
+```javascript
+// Enable/disable shortcuts
+enable() / disable()
+
+// Handle key press
+onKeyDown(event) {
+  // Check if shortcuts enabled and edit mode active
+  if (!enabled || !MapHeightEditor.isActive) return;
+
+  // Don't interfere with input fields
+  if (document.activeElement.tagName === 'INPUT') return;
+
+  // Check both event.code and event.key for compatibility
+  let shortcut = this.shortcuts[event.code] || this.shortcuts[event.key];
+  if (!shortcut) return;
+
+  // Apply adjustment or set value
+  const newHeight = shortcut.setValue ?? (currentHeight + shortcut.adjustment);
+  updateBrushHeight(newHeight, shortcut.adjustment);
+}
+
+// Update brush height globally
+updateBrushHeight(newHeight, adjustment) {
+  window.MapHeightEditor.currentBrushHeight = newHeight;
+  brushDisplay?.updateHeight(newHeight);
+  ui.controls.render(); // Update scene controls
+}
+```
+
+**Important**: Checks both `event.code` and `event.key` because symbol keys (+/-) work better with `event.key`.
 
 ---
 
