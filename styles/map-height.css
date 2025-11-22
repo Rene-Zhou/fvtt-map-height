@@ -880,13 +880,15 @@
 .brush-quick-btn {
   flex: 1 1 0;
   min-width: 0;
-  padding: 8px;
+  height: 32px;
+  padding: 0 8px;
   border: 1px solid;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
   font-size: 1em;
   font-weight: bold;
+  line-height: 1;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
