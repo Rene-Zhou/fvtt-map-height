@@ -774,6 +774,13 @@
   cursor: pointer;
   font-size: 0.8em;
   transition: all 0.2s ease;
+  min-width: 24px;
+  max-width: 24px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .brush-display-close:hover {

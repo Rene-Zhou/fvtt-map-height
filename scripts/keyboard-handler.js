@@ -109,8 +109,13 @@ export default class KeyboardHandler {
 
     // Check if this is a registered shortcut
     // 检查是否为已注册的快捷键
-    const key = event.code || event.key;
-    const shortcut = this.shortcuts[key];
+    // Try event.code first, then event.key for compatibility
+    let shortcut = this.shortcuts[event.code];
+
+    // If not found by code, try by key (for +, -, = etc.)
+    if (!shortcut) {
+      shortcut = this.shortcuts[event.key];
+    }
 
     if (!shortcut) return;
 
