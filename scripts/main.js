@@ -318,7 +318,8 @@ async function loadModuleComponents() {
     MapHeightEditor.KeyboardHandler = KeyboardHandler.default;
 
     // Import debug helper (only in debug mode)
-    if (game.settings.get("core", "debug") || window.location.search.includes("debug")) {
+    // Check URL parameter for debug mode (safer than checking core.debug setting)
+    if (window.location.search.includes("debug")) {
       const DebugHelper = await import('./debug-helper.js');
       MapHeightEditor.DebugHelper = DebugHelper.default;
     }
