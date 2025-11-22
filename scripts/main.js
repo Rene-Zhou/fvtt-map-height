@@ -180,16 +180,6 @@ function registerModuleSettings() {
     },
     default: 0.8
   });
-  
-  // Default brush height
-  game.settings.register(MODULE_ID, "defaultBrushHeight", {
-    name: "Default Brush Height",
-    hint: "Default height value for the brush tool",
-    scope: "client",
-    config: true,
-    type: Number,
-    default: 0
-  });
 }
 
 /**
@@ -251,15 +241,12 @@ function initializeGMInterface() {
   
   // Initialize height overlay
   MapHeightEditor.heightOverlay = new MapHeightEditor.HeightOverlay(MapHeightEditor.heightManager);
-  
-  // Set default brush height from settings
-  MapHeightEditor.currentBrushHeight = game.settings.get(MODULE_ID, "defaultBrushHeight");
-  
+
   // Install debug commands if available
   if (MapHeightEditor.DebugHelper) {
     MapHeightEditor.DebugHelper.installDebugCommands();
   }
-  
+
 }
 
 /**
@@ -315,16 +302,13 @@ function openHeightSidebar() {
  */
 function setBrushHeight(height) {
   MapHeightEditor.currentBrushHeight = height;
-  
-  // Update settings
-  game.settings.set(MODULE_ID, "defaultBrushHeight", height);
-  
+
   // Update sidebar if it's open
   if (MapHeightEditor.sidebar && MapHeightEditor.sidebar.rendered) {
     MapHeightEditor.sidebar.currentBrushHeight = height;
     MapHeightEditor.sidebar.render();
   }
-  
+
   // Refresh scene controls to update button states
   ui.controls.render();
 }
