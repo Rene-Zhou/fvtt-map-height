@@ -81,7 +81,7 @@ Hooks.on('canvasReady', async function() {
  */
 Hooks.on('getSceneControlButtons', (controls) => {
   if (!game.user.isGM) return;
-  
+
   const mapHeightControl = {
     name: "mapheight",
     title: "Map Height Editor",
@@ -89,15 +89,8 @@ Hooks.on('getSceneControlButtons', (controls) => {
     layer: "mapheight", // Use our custom layer
     tools: [
       {
-        name: "height-sidebar",
-        title: "Open Height Editor",
-        icon: "fas fa-tools",
-        onClick: () => openHeightSidebar(),
-        button: true
-      },
-      {
-        name: "height-edit",
-        title: "Height Edit Mode",
+        name: "height-edit-mode",
+        title: "Toggle Height Edit Mode",
         icon: "fas fa-edit",
         onClick: () => toggleHeightEditMode(),
         active: MapHeightEditor.isActive,
@@ -105,28 +98,21 @@ Hooks.on('getSceneControlButtons', (controls) => {
       },
       {
         name: "height-brush-0",
-        title: "Height 0",
+        title: "Height 0 (Water)",
         icon: "fas fa-water",
-        onClick: () => setBrushHeight(0),
-        active: MapHeightEditor.currentBrushHeight === 0
+        onClick: () => activateBrushAndEditMode(0),
+        active: MapHeightEditor.isActive && MapHeightEditor.currentBrushHeight === 0
       },
       {
-        name: "height-brush-5",
-        title: "Height 5",
-        icon: "fas fa-leaf",
-        onClick: () => setBrushHeight(5),
-        active: MapHeightEditor.currentBrushHeight === 5
-      },
-      {
-        name: "height-brush-10",
-        title: "Height 10",
-        icon: "fas fa-mountain",
-        onClick: () => setBrushHeight(10),
-        active: MapHeightEditor.currentBrushHeight === 10
+        name: "custom-brush",
+        title: "Custom Height Brush",
+        icon: "fas fa-sliders-h",
+        onClick: () => activateCustomBrush(),
+        active: MapHeightEditor.isActive && MapHeightEditor.currentBrushHeight !== 0
       }
     ]
   };
-  
+
   controls.push(mapHeightControl);
 });
 
@@ -209,6 +195,123 @@ function registerModuleSettings() {
     type: Boolean,
     default: true
   });
+
+  // Data management settings (buttons)
+  game.settings.registerMenu(MODULE_ID, "dataManagement", {
+    name: "Data Management",
+    label: "Manage Height Data",
+    hint: "Import, export, or clear height data for the current scene",
+    icon: "fas fa-database",
+    type: DataManagementConfig,
+    restricted: true
+  });
+}
+
+/**
+ * Data Management Configuration Form
+ * 数据管理配置表单
+ */
+class DataManagementConfig extends FormApplication {
+  static get defaultOptions() {
+    return foundry.utils.mergeObject(super.defaultOptions, {
+      id: "map-height-data-management",
+      title: "Map Height Data Management",
+      template: "modules/fvtt-map-height/templates/data-management.hbs",
+      classes: ["map-height-config"],
+      width: 500,
+      height: "auto",
+      closeOnSubmit: false,
+      submitOnChange: false,
+      submitOnClose: false
+    });
+  }
+
+  getData(options = {}) {
+    const heightManager = window.MapHeightEditor?.heightManager;
+    const stats = heightManager ? {
+      totalGrids: heightManager.gridHeights.size,
+      exceptions: heightManager.exceptTokens.size
+    } : { totalGrids: 0, exceptions: 0 };
+
+    return {
+      ...super.getData(options),
+      stats
+    };
+  }
+
+  activateListeners(html) {
+    super.activateListeners(html);
+
+    html.find('[data-action="export"]').click(() => this._onExport());
+    html.find('[data-action="import"]').click(() => this._onImport());
+    html.find('[data-action="clear"]').click(() => this._onClear());
+  }
+
+  async _onExport() {
+    const heightManager = window.MapHeightEditor?.heightManager;
+    if (!heightManager) return;
+
+    const data = heightManager.exportData();
+    const filename = `map-heights-${canvas.scene.name.slugify()}-${Date.now()}.json`;
+
+    saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
+    ui.notifications.info("Height data exported successfully");
+  }
+
+  async _onImport() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        const heightManager = window.MapHeightEditor?.heightManager;
+        if (!heightManager) return;
+
+        const success = await heightManager.importData(data);
+        if (success) {
+          ui.notifications.info("Height data imported successfully");
+          this.render();
+        } else {
+          ui.notifications.error("Failed to import height data");
+        }
+      } catch (error) {
+        console.error("Error importing height data:", error);
+        ui.notifications.error("Invalid file format");
+      }
+    };
+
+    input.click();
+  }
+
+  async _onClear() {
+    const confirmed = await Dialog.confirm({
+      title: "Clear All Heights",
+      content: "<p>Are you sure you want to clear all grid heights? This action cannot be undone.</p>",
+      yes: () => true,
+      no: () => false
+    });
+
+    if (confirmed) {
+      const heightManager = window.MapHeightEditor?.heightManager;
+      if (!heightManager) return;
+
+      heightManager.resetData();
+      await heightManager.saveHeightData();
+      ui.notifications.info("All grid heights cleared");
+      this.render();
+    }
+  }
+
+  async _updateObject(event, formData) {
+    // No form data to process
+  }
 }
 
 /**
@@ -224,11 +327,8 @@ async function loadModuleComponents() {
     // Import token automation
     const TokenAutomation = await import('./token-automation.js');
     MapHeightEditor.TokenAutomation = TokenAutomation.default;
-    
+
     // Import UI components
-    const SidebarControl = await import('./ui/sidebar-control.js');
-    MapHeightEditor.SidebarControl = SidebarControl.default;
-    
     const HeightOverlay = await import('./ui/height-overlay.js');
     MapHeightEditor.HeightOverlay = HeightOverlay.default;
 
@@ -260,31 +360,28 @@ async function loadModuleComponents() {
  * 初始化GM专用界面元素
  */
 function initializeGMInterface() {
-  
+
   // Initialize height manager
   MapHeightEditor.heightManager = new MapHeightEditor.HeightManager();
   const initialized = MapHeightEditor.heightManager.initialize();
-  
+
   if (!initialized) {
     console.error(`${MODULE_TITLE} | Failed to initialize height manager`);
     return;
   }
-  
+
   // Initialize token automation
   MapHeightEditor.tokenAutomation = new MapHeightEditor.TokenAutomation(MapHeightEditor.heightManager);
-  
-  // Initialize sidebar control
-  MapHeightEditor.sidebar = new MapHeightEditor.SidebarControl(MapHeightEditor.heightManager);
-  
+
   // Initialize height overlay
   MapHeightEditor.heightOverlay = new MapHeightEditor.HeightOverlay(MapHeightEditor.heightManager);
 
   // Initialize brush display
   MapHeightEditor.brushDisplay = new MapHeightEditor.BrushDisplay();
 
-  // Initialize keyboard handler
+  // Initialize keyboard handler (pass null for sidebar since we removed it)
   MapHeightEditor.keyboardHandler = new MapHeightEditor.KeyboardHandler(
-    MapHeightEditor.sidebar,
+    null,
     MapHeightEditor.brushDisplay
   );
 
@@ -303,10 +400,6 @@ function toggleHeightEditMode() {
   MapHeightEditor.isActive = !MapHeightEditor.isActive;
 
   if (MapHeightEditor.isActive) {
-    // Show sidebar
-    if (MapHeightEditor.sidebar) {
-      MapHeightEditor.sidebar.render(true);
-    }
     // Enable height edit mode on the custom layer
     if (canvas.mapheight) {
       canvas.mapheight.enableHeightEditMode();
@@ -317,11 +410,9 @@ function toggleHeightEditMode() {
     showBrushDisplay();
     // Enable keyboard shortcuts
     enableKeyboardShortcuts();
+
+    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeActivated"));
   } else {
-    // Hide sidebar
-    if (MapHeightEditor.sidebar) {
-      MapHeightEditor.sidebar.close();
-    }
     // Disable height edit mode on the custom layer
     if (canvas.mapheight) {
       canvas.mapheight.disableHeightEditMode();
@@ -332,6 +423,8 @@ function toggleHeightEditMode() {
     hideBrushDisplay();
     // Disable keyboard shortcuts
     disableKeyboardShortcuts();
+
+    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeDeactivated"));
   }
 
   // Fire hook for edit mode change
@@ -342,33 +435,72 @@ function toggleHeightEditMode() {
 }
 
 /**
- * Open the height editor sidebar
- * 打开高度编辑器侧边栏
+ * Activate brush with specific height and enable edit mode
+ * 激活指定高度的画笔并启用编辑模式
  */
-function openHeightSidebar() {
-  if (MapHeightEditor.sidebar) {
-    MapHeightEditor.sidebar.render(true);
-  } else {
-    console.warn(`${MODULE_TITLE} | Sidebar not initialized`);
+function activateBrushAndEditMode(height) {
+  // Set brush height
+  MapHeightEditor.currentBrushHeight = height;
+
+  // Update brush display if it exists
+  if (MapHeightEditor.brushDisplay) {
+    MapHeightEditor.brushDisplay.updateHeight(height);
   }
+
+  // Enable edit mode if not already active
+  if (!MapHeightEditor.isActive) {
+    MapHeightEditor.isActive = true;
+
+    // Enable height edit mode on the custom layer
+    if (canvas.mapheight) {
+      canvas.mapheight.enableHeightEditMode();
+    }
+    // Show height overlay
+    showHeightOverlay();
+    // Show brush display
+    showBrushDisplay();
+    // Enable keyboard shortcuts
+    enableKeyboardShortcuts();
+
+    // Fire hook for edit mode change
+    Hooks.callAll(`${MODULE_ID}.editModeChanged`, true);
+
+    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeActivated"));
+  }
+
+  // Refresh scene controls to update button states
+  ui.controls.render();
 }
 
 /**
- * Set brush height value
- * 设置画笔高度值
+ * Activate custom brush and enable edit mode
+ * 激活自定义画笔并启用编辑模式
  */
-function setBrushHeight(height) {
-  MapHeightEditor.currentBrushHeight = height;
+function activateCustomBrush() {
+  // Enable edit mode if not already active
+  if (!MapHeightEditor.isActive) {
+    MapHeightEditor.isActive = true;
 
-  // Update sidebar if it's open
-  if (MapHeightEditor.sidebar && MapHeightEditor.sidebar.rendered) {
-    MapHeightEditor.sidebar.currentBrushHeight = height;
-    MapHeightEditor.sidebar.render();
+    // Enable height edit mode on the custom layer
+    if (canvas.mapheight) {
+      canvas.mapheight.enableHeightEditMode();
+    }
+    // Show height overlay
+    showHeightOverlay();
+    // Show brush display
+    showBrushDisplay();
+    // Enable keyboard shortcuts
+    enableKeyboardShortcuts();
+
+    // Fire hook for edit mode change
+    Hooks.callAll(`${MODULE_ID}.editModeChanged`, true);
+
+    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeActivated"));
   }
 
-  // Update brush display if it's visible
-  if (MapHeightEditor.brushDisplay && MapHeightEditor.brushDisplay.isVisible) {
-    MapHeightEditor.brushDisplay.updateHeight(height);
+  // Update brush display with current height
+  if (MapHeightEditor.brushDisplay) {
+    MapHeightEditor.brushDisplay.updateHeight(MapHeightEditor.currentBrushHeight);
   }
 
   // Refresh scene controls to update button states

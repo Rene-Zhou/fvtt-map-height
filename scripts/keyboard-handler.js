@@ -13,7 +13,7 @@ const MODULE_ID = "fvtt-map-height";
 export default class KeyboardHandler {
 
   constructor(sidebar, brushDisplay) {
-    this.sidebar = sidebar;
+    this.sidebar = sidebar; // May be null (sidebar has been removed)
     this.brushDisplay = brushDisplay;
     this.isEnabled = false;
 
@@ -157,16 +157,13 @@ export default class KeyboardHandler {
     // Update global state
     window.MapHeightEditor.currentBrushHeight = newHeight;
 
-    // Update sidebar
-    if (this.sidebar) {
-      this.sidebar.currentBrushHeight = newHeight;
-      this.sidebar.render();
-    }
-
     // Update brush display
     if (this.brushDisplay && this.brushDisplay.isVisible) {
       this.brushDisplay.updateHeight(newHeight);
     }
+
+    // Update scene controls to reflect active brush
+    ui.controls.render();
 
     // Show visual feedback with the adjustment amount
     // 显示调整量的视觉反馈

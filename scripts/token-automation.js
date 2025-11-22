@@ -75,8 +75,8 @@ export default class TokenAutomation {
       return;
     }
 
-    // Don't process if token is in exception list
-    if (this.heightManager.isExceptionToken(tokenDocument.id)) {
+    // Don't process if token is in exception list or has flying status
+    if (this.shouldSkipToken(tokenDocument)) {
       return;
     }
 
@@ -130,8 +130,8 @@ export default class TokenAutomation {
       return;
     }
 
-    // Don't process if token is in exception list
-    if (this.heightManager.isExceptionToken(tokenDocument.id)) {
+    // Don't process if token is in exception list or has flying status
+    if (this.shouldSkipToken(tokenDocument)) {
       return;
     }
 
@@ -205,7 +205,7 @@ export default class TokenAutomation {
     gridPositions.forEach(pos => {
       const tokensOnGrid = this.getTokensOnGrid(pos.x, pos.y);
       tokensOnGrid.forEach(token => {
-        if (!this.heightManager.isExceptionToken(token.id)) {
+        if (!this.shouldSkipToken(token)) {
           affectedTokens.add(token);
         }
       });
@@ -266,9 +266,9 @@ export default class TokenAutomation {
    */
   async updateTokenElevation(tokenDocument) {
     try {
-      
-      // Skip if token is in exception list
-      if (this.heightManager.isExceptionToken(tokenDocument.id)) {
+
+      // Skip if token should be excluded
+      if (this.shouldSkipToken(tokenDocument)) {
         return;
       }
 
@@ -358,10 +358,10 @@ export default class TokenAutomation {
     let updatedCount = 0;
 
     for (const tokenDocument of tokens) {
-      if (!this.heightManager.isExceptionToken(tokenDocument.id)) {
+      if (!this.shouldSkipToken(tokenDocument)) {
         const oldElevation = tokenDocument.elevation || 0;
         await this.updateTokenElevation(tokenDocument);
-        
+
         const newElevation = tokenDocument.elevation || 0;
         if (oldElevation !== newElevation) {
           updatedCount++;
@@ -467,6 +467,81 @@ export default class TokenAutomation {
     // Return the maximum height among all grids the token occupies
     // 返回Token占据的所有网格中的最大高度
     return Math.max(...heights);
+  }
+
+  /**
+   * Check if a token should skip automatic height updates
+   * 检查Token是否应跳过自动高度更新
+   */
+  shouldSkipToken(tokenDocument) {
+    // Check exception list
+    if (this.heightManager.isExceptionToken(tokenDocument.id)) {
+      return true;
+    }
+
+    // Check for flying status
+    if (this.hasFlyingStatus(tokenDocument)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if a token has flying status
+   * 检查Token是否具有飞行状态
+   */
+  hasFlyingStatus(tokenDocument) {
+    // Get the actor
+    const actor = tokenDocument.actor;
+    if (!actor) return false;
+
+    // Check for active effects with flying status
+    // 检查具有飞行状态的激活效果
+    const flyingStatuses = ['fly', 'flying', 'hover', 'hovering', 'levitate', 'levitating'];
+
+    // Method 1: Check actor's active effects
+    if (actor.effects) {
+      for (const effect of actor.effects) {
+        const label = effect.label?.toLowerCase() || effect.name?.toLowerCase() || '';
+        const statusId = effect.statuses?.values().next().value?.toLowerCase() || '';
+        const icon = effect.icon?.toLowerCase() || '';
+
+        if (flyingStatuses.some(status =>
+          label.includes(status) ||
+          statusId.includes(status) ||
+          icon.includes(status)
+        )) {
+          return true;
+        }
+      }
+    }
+
+    // Method 2: Check token document's status effects
+    if (tokenDocument.effects) {
+      for (const effect of tokenDocument.effects) {
+        const effectLower = (typeof effect === 'string' ? effect : effect.id || '').toLowerCase();
+        if (flyingStatuses.some(status => effectLower.includes(status))) {
+          return true;
+        }
+      }
+    }
+
+    // Method 3: For D&D 5e system - check movement speeds
+    if (game.system.id === 'dnd5e' && actor.system?.attributes?.movement?.fly) {
+      const flySpeed = actor.system.attributes.movement.fly;
+      // If fly speed exists and is greater than 0, consider it flying
+      if (flySpeed && parseFloat(flySpeed) > 0) {
+        return true;
+      }
+    }
+
+    // Method 4: Check for custom flying property (some systems use this)
+    if (actor.system?.attributes?.flying === true) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
