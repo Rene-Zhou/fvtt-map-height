@@ -101,6 +101,28 @@ Hooks.on('getSceneControlButtons', (controls) => {
   controls.push(mapHeightControl);
   console.log(`${MODULE_TITLE} | Scene control added:`, mapHeightControl);
   console.log(`${MODULE_TITLE} | Total controls:`, controls.length);
+  console.log(`${MODULE_TITLE} | All control names:`, controls.map(c => c.name));
+});
+
+/**
+ * Hook after scene controls are rendered
+ * 场景控件渲染后的钩子
+ */
+Hooks.on('renderSceneControls', (app, html, data) => {
+  console.log(`${MODULE_TITLE} | SceneControls rendered`);
+  console.log(`${MODULE_TITLE} | Active control:`, ui.controls.activeControl);
+  console.log(`${MODULE_TITLE} | Active tool:`, ui.controls.activeTool);
+
+  // Check if our button exists in the DOM
+  const mapheightButton = html.find('[data-control="mapheight"]');
+  console.log(`${MODULE_TITLE} | Map Height button in DOM:`, mapheightButton.length > 0);
+
+  if (mapheightButton.length > 0) {
+    console.log(`${MODULE_TITLE} | Button HTML:`, mapheightButton[0]);
+  } else {
+    console.warn(`${MODULE_TITLE} | Map Height button NOT found in DOM!`);
+    console.log(`${MODULE_TITLE} | Available control buttons:`, html.find('[data-control]').toArray().map(el => el.dataset.control));
+  }
 });
 
 /**

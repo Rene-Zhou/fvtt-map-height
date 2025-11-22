@@ -66,6 +66,12 @@ export default class MapHeightLayer extends InteractionLayer {
   deactivate() {
     super.deactivate();
 
+    // Only proceed if edit mode was actually active
+    // 只有在编辑模式确实激活时才执行
+    if (!window.MapHeightEditor?.isActive) {
+      return this;
+    }
+
     // Deactivate height edit mode
     window.MapHeightEditor.isActive = false;
     this.isHeightEditMode = false;
