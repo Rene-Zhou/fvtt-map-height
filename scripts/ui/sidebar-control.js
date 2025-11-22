@@ -93,7 +93,6 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
       currentBrushHeight: this.currentBrushHeight,
       customHeight: this.customHeight,
       autoUpdate: game.settings.get(MODULE_ID, "autoUpdateTokens"),
-      overlayOpacity: game.settings.get(MODULE_ID, "overlayOpacity"),
       heightEnabled: this.heightManager?.enabled || false,
 
       // Predefined brush heights
@@ -150,13 +149,12 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
    */
   _attachPartListeners(partId, htmlElement, options) {
     super._attachPartListeners(partId, htmlElement, options);
-    
+
     // Edit mode toggle
     htmlElement.addEventListener('click', this._onClickAction.bind(this));
-    
+
     // Settings changes
     htmlElement.addEventListener('change', this._onFormChange.bind(this));
-    htmlElement.addEventListener('input', this._onFormInput.bind(this));
   }
 
   /**
@@ -198,16 +196,6 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
   }
 
   /**
-   * Handle form input events
-   * 处理表单输入事件
-   */
-  _onFormInput(event) {
-    if (event.target.name === 'overlayOpacity') {
-      return this._onOpacityChange(event);
-    }
-  }
-
-  /**
    * Toggle edit mode
    * 切换编辑模式
    */
@@ -241,10 +229,7 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
     const height = parseInt(target.dataset.height);
     this.currentBrushHeight = height;
     window.MapHeightEditor.currentBrushHeight = height;
-    
-    // Update settings
-    game.settings.set(MODULE_ID, "defaultBrushHeight", height);
-    
+
     // Refresh UI
     this.render();
     ui.controls.render();
@@ -256,22 +241,19 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
    */
   async _onSetCustomHeight(event) {
     event.preventDefault();
-    
+
     const form = this.element.querySelector('form');
     const customHeightInput = form.querySelector('[name="customHeight"]');
     const customHeight = parseInt(customHeightInput.value);
-    
+
     if (isNaN(customHeight) || !this.heightManager.validateHeight(customHeight)) {
       ui.notifications.warn("Invalid height value. Must be between -1000 and 1000.");
       return;
     }
-    
+
     this.currentBrushHeight = customHeight;
     window.MapHeightEditor.currentBrushHeight = customHeight;
-    
-    // Update settings
-    game.settings.set(MODULE_ID, "defaultBrushHeight", customHeight);
-    
+
     this.render();
   }
 
@@ -392,26 +374,11 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
     const target = event.target;
     const setting = target.name;
     const value = target.checked;
-    
+
     await game.settings.set(MODULE_ID, setting, value);
-    
+
     if (setting === "autoUpdateTokens" && window.MapHeightEditor.tokenAutomation) {
       window.MapHeightEditor.tokenAutomation.setEnabled(value);
-    }
-  }
-
-  /**
-   * Handle opacity slider changes
-   * 处理透明度滑块变化
-   */
-  async _onOpacityChange(event) {
-    const target = event.target;
-    const opacity = parseFloat(target.value);
-    await game.settings.set(MODULE_ID, "overlayOpacity", opacity);
-
-    // Update overlay if visible
-    if (this.isEditMode) {
-      this._updateOverlayOpacity(opacity);
     }
   }
 
@@ -434,18 +401,6 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
       window.MapHeightEditor.heightOverlay.hide();
     }
   }
-
-  /**
-   * Update overlay opacity
-   * 更新覆盖层透明度
-   */
-  _updateOverlayOpacity(opacity) {
-    if (window.MapHeightEditor?.heightOverlay) {
-      window.MapHeightEditor.heightOverlay.opacity = opacity;
-      window.MapHeightEditor.heightOverlay.alpha = opacity;
-    }
-  }
-
 
   /**
    * Refresh sidebar data
