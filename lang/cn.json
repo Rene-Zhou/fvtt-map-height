@@ -14,6 +14,10 @@
       "DefaultBrushHeight": {
         "Name": "默认画笔高度",
         "Hint": "画笔工具的默认高度值"
+      },
+      "FontSizeMultiplier": {
+        "Name": "高度数字字体大小",
+        "Hint": "网格高度数字的字体大小倍数 (1-5)"
       }
     },
     "Controls": {

@@ -14,6 +14,10 @@
       "DefaultBrushHeight": {
         "Name": "Default Brush Height",
         "Hint": "Default height value for the brush tool"
+      },
+      "FontSizeMultiplier": {
+        "Name": "Height Number Font Size",
+        "Hint": "Size multiplier for grid height numbers (1-5)"
       }
     },
     "Controls": {
