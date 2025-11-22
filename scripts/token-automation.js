@@ -298,8 +298,9 @@ export default class TokenAutomation {
         return;
       }
 
-      // Get height for this grid position
-      const newHeight = this.heightManager.getGridHeight(position.i, position.j);
+      // Get height for this token (handles multi-grid tokens by using maximum height)
+      // 获取Token的高度（对于多网格Token使用最大高度）
+      const newHeight = this.calculateMultiGridHeight(targetTokenData.document || targetTokenData);
       const currentHeight = tokenDocument.elevation || 0;
 
 
@@ -452,20 +453,20 @@ export default class TokenAutomation {
   }
 
   /**
-   * Calculate average height for multi-grid tokens
-   * 计算多网格Token的平均高度
+   * Calculate maximum height for multi-grid tokens
+   * 计算多网格Token的最大高度
    */
   calculateMultiGridHeight(tokenDocument) {
     const coverage = this.getTokenGridCoverage(tokenDocument);
     if (coverage.length === 0) return 0;
 
-    const heights = coverage.map(pos => 
+    const heights = coverage.map(pos =>
       this.heightManager.getGridHeight(pos.i, pos.j)
     );
 
-    // Return the average height, rounded to nearest integer
-    const averageHeight = heights.reduce((sum, h) => sum + h, 0) / heights.length;
-    return Math.round(averageHeight);
+    // Return the maximum height among all grids the token occupies
+    // 返回Token占据的所有网格中的最大高度
+    return Math.max(...heights);
   }
 
   /**

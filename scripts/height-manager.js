@@ -329,14 +329,45 @@ export default class HeightManager {
   }
 
   /**
-   * Get height for token's current position
-   * 获取Token当前位置的高度
+   * Get all grid coordinates covered by a token
+   * 获取Token覆盖的所有网格坐标
+   */
+  getTokenGridCoverage(token) {
+    const tokenDoc = token.document || token;
+    const position = this.getTokenGridPosition(token);
+    if (!position) return [];
+
+    const width = tokenDoc.width || 1;
+    const height = tokenDoc.height || 1;
+    const coverage = [];
+
+    for (let x = 0; x < width; x++) {
+      for (let y = 0; y < height; y++) {
+        coverage.push({
+          i: position.i + x,
+          j: position.j + y
+        });
+      }
+    }
+
+    return coverage;
+  }
+
+  /**
+   * Get maximum height for token's current position (handles multi-grid tokens)
+   * 获取Token当前位置的最大高度（处理多网格Token）
    */
   getTokenHeight(token) {
-    const position = this.getTokenGridPosition(token);
-    if (!position) return 0;
-    
-    return this.getGridHeight(position.i, position.j);
+    const coverage = this.getTokenGridCoverage(token);
+    if (coverage.length === 0) return 0;
+
+    // Get heights for all grids the token occupies
+    // 获取Token占据的所有网格的高度
+    const heights = coverage.map(pos => this.getGridHeight(pos.i, pos.j));
+
+    // Return the maximum height
+    // 返回最大高度
+    return Math.max(...heights);
   }
 
   /**
