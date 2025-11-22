@@ -95,7 +95,7 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
       autoUpdate: game.settings.get(MODULE_ID, "autoUpdateTokens"),
       overlayOpacity: game.settings.get(MODULE_ID, "overlayOpacity"),
       heightEnabled: this.heightManager?.enabled || false,
-      
+
       // Predefined brush heights
       brushHeights: [
         { value: 0, label: "Water", icon: "fas fa-water", color: "#4FC3F7" },
@@ -408,7 +408,7 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
     const target = event.target;
     const opacity = parseFloat(target.value);
     await game.settings.set(MODULE_ID, "overlayOpacity", opacity);
-    
+
     // Update overlay if visible
     if (this.isEditMode) {
       this._updateOverlayOpacity(opacity);

@@ -356,10 +356,14 @@ export default class HeightOverlay extends PIXI.Container {
    */
   getTextStyle(height) {
     const baseSize = Math.max(12, this.gridSize / 8);
-    
+
+    // Use 3x font size multiplier for better visibility
+    // 使用3倍字体大小以提高可见性
+    const fontSize = baseSize * 3.0;
+
     return new PIXI.TextStyle({
       fontFamily: 'Arial, sans-serif',
-      fontSize: baseSize,
+      fontSize: fontSize,
       fontWeight: 'bold',
       fill: 0xFFFFFF,
       stroke: 0x000000,
