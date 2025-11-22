@@ -95,20 +95,6 @@ Hooks.on('getSceneControlButtons', (controls) => {
         onClick: () => toggleHeightEditMode(),
         active: MapHeightEditor.isActive,
         toggle: true
-      },
-      {
-        name: "height-brush-0",
-        title: "Height 0 (Water)",
-        icon: "fas fa-water",
-        onClick: () => activateBrushAndEditMode(0),
-        active: MapHeightEditor.isActive && MapHeightEditor.currentBrushHeight === 0
-      },
-      {
-        name: "custom-brush",
-        title: "Custom Height Brush",
-        icon: "fas fa-sliders-h",
-        onClick: () => activateCustomBrush(),
-        active: MapHeightEditor.isActive && MapHeightEditor.currentBrushHeight !== 0
       }
     ]
   };
@@ -431,79 +417,6 @@ function toggleHeightEditMode() {
   Hooks.callAll(`${MODULE_ID}.editModeChanged`, MapHeightEditor.isActive);
 
   // Refresh scene controls to update button state
-  ui.controls.render();
-}
-
-/**
- * Activate brush with specific height and enable edit mode
- * 激活指定高度的画笔并启用编辑模式
- */
-function activateBrushAndEditMode(height) {
-  // Set brush height
-  MapHeightEditor.currentBrushHeight = height;
-
-  // Update brush display if it exists
-  if (MapHeightEditor.brushDisplay) {
-    MapHeightEditor.brushDisplay.updateHeight(height);
-  }
-
-  // Enable edit mode if not already active
-  if (!MapHeightEditor.isActive) {
-    MapHeightEditor.isActive = true;
-
-    // Enable height edit mode on the custom layer
-    if (canvas.mapheight) {
-      canvas.mapheight.enableHeightEditMode();
-    }
-    // Show height overlay
-    showHeightOverlay();
-    // Show brush display
-    showBrushDisplay();
-    // Enable keyboard shortcuts
-    enableKeyboardShortcuts();
-
-    // Fire hook for edit mode change
-    Hooks.callAll(`${MODULE_ID}.editModeChanged`, true);
-
-    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeActivated"));
-  }
-
-  // Refresh scene controls to update button states
-  ui.controls.render();
-}
-
-/**
- * Activate custom brush and enable edit mode
- * 激活自定义画笔并启用编辑模式
- */
-function activateCustomBrush() {
-  // Enable edit mode if not already active
-  if (!MapHeightEditor.isActive) {
-    MapHeightEditor.isActive = true;
-
-    // Enable height edit mode on the custom layer
-    if (canvas.mapheight) {
-      canvas.mapheight.enableHeightEditMode();
-    }
-    // Show height overlay
-    showHeightOverlay();
-    // Show brush display
-    showBrushDisplay();
-    // Enable keyboard shortcuts
-    enableKeyboardShortcuts();
-
-    // Fire hook for edit mode change
-    Hooks.callAll(`${MODULE_ID}.editModeChanged`, true);
-
-    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeActivated"));
-  }
-
-  // Update brush display with current height
-  if (MapHeightEditor.brushDisplay) {
-    MapHeightEditor.brushDisplay.updateHeight(MapHeightEditor.currentBrushHeight);
-  }
-
-  // Refresh scene controls to update button states
   ui.controls.render();
 }
 

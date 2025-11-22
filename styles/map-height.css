@@ -867,6 +867,79 @@
   font-size: 0.75em;
 }
 
+/* Brush Display Controls (+/0/-) */
+.brush-display-controls {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-light, #666);
+  justify-content: center;
+  align-items: center;
+}
+
+.brush-quick-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.brush-quick-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.brush-quick-btn:active {
+  transform: translateY(0);
+}
+
+.brush-quick-btn.positive {
+  border-color: #81C784;
+  color: #81C784;
+}
+
+.brush-quick-btn.positive:hover {
+  background: rgba(129, 199, 132, 0.2);
+  box-shadow: 0 0 12px rgba(129, 199, 132, 0.4);
+}
+
+.brush-quick-btn.zero {
+  border-color: #4FC3F7;
+  color: #4FC3F7;
+}
+
+.brush-quick-btn.zero:hover {
+  background: rgba(79, 195, 247, 0.2);
+  box-shadow: 0 0 12px rgba(79, 195, 247, 0.4);
+}
+
+.brush-quick-btn.negative {
+  border-color: #E57373;
+  color: #E57373;
+}
+
+.brush-quick-btn.negative:hover {
+  background: rgba(229, 115, 115, 0.2);
+  box-shadow: 0 0 12px rgba(229, 115, 115, 0.4);
+}
+
+.brush-quick-btn i {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @keyframes brushPulse {
   0%, 100% {
     transform: scale(1);

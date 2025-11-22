@@ -77,7 +77,11 @@
     "BrushDisplay": {
       "Title": "Height Brush",
       "EditMode": "Edit Mode: ON",
-      "Close": "Close brush display"
+      "Close": "Close brush display",
+      "CloseEditMode": "Exit edit mode",
+      "Increment": "Increase height by 5",
+      "Decrement": "Decrease height by 5",
+      "Zero": "Set height to 0"
     },
     "KeyboardShortcuts": {
       "Title": "Keyboard Shortcuts",

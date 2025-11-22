@@ -61,7 +61,7 @@ export default class BrushDisplay {
       <div class="brush-display-header">
         <i class="fas fa-paint-brush"></i>
         <span class="brush-display-title">${game.i18n.localize("MAP_HEIGHT.BrushDisplay.Title")}</span>
-        <button class="brush-display-close" title="${game.i18n.localize("MAP_HEIGHT.BrushDisplay.Close")}">
+        <button class="brush-display-close" title="${game.i18n.localize("MAP_HEIGHT.BrushDisplay.CloseEditMode")}">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -69,8 +69,16 @@ export default class BrushDisplay {
         <div class="brush-height-value" data-height="0">0</div>
         <div class="brush-height-bar"></div>
       </div>
-      <div class="brush-display-footer">
-        <small>${game.i18n.localize("MAP_HEIGHT.BrushDisplay.EditMode")}</small>
+      <div class="brush-display-controls">
+        <button class="brush-quick-btn positive" data-action="increment" title="${game.i18n.localize("MAP_HEIGHT.BrushDisplay.Increment")}">
+          <i class="fas fa-plus"></i>
+        </button>
+        <button class="brush-quick-btn zero" data-action="zero" title="${game.i18n.localize("MAP_HEIGHT.BrushDisplay.Zero")}">
+          0
+        </button>
+        <button class="brush-quick-btn negative" data-action="decrement" title="${game.i18n.localize("MAP_HEIGHT.BrushDisplay.Decrement")}">
+          <i class="fas fa-minus"></i>
+        </button>
       </div>
     `;
 
@@ -93,8 +101,17 @@ export default class BrushDisplay {
     document.addEventListener('mousemove', this.onDrag.bind(this));
     document.addEventListener('mouseup', this.onDragEnd.bind(this));
 
-    // Close button
-    closeBtn.addEventListener('click', this.hide.bind(this));
+    // Close button - now exits edit mode instead of just hiding display
+    closeBtn.addEventListener('click', this.onCloseEditMode.bind(this));
+
+    // Quick action buttons
+    this.element.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const action = e.currentTarget.dataset.action;
+        this.onQuickAction(action);
+      });
+    });
 
     // Prevent drag from triggering other canvas events
     this.element.addEventListener('mousedown', (e) => {
@@ -165,6 +182,80 @@ export default class BrushDisplay {
 
     // Save position to settings
     await game.settings.set(MODULE_ID, "brushDisplayPosition", this.position);
+  }
+
+  /**
+   * Handle close button - exits edit mode
+   * 处理关闭按钮 - 退出编辑模式
+   */
+  onCloseEditMode(event) {
+    event.stopPropagation();
+
+    // Toggle edit mode off via the global state
+    if (window.MapHeightEditor?.isActive) {
+      window.MapHeightEditor.isActive = false;
+
+      // Hide overlay
+      if (window.MapHeightEditor.heightOverlay) {
+        window.MapHeightEditor.heightOverlay.hide();
+      }
+
+      // Hide this display
+      this.hide();
+
+      // Disable keyboard shortcuts
+      if (window.MapHeightEditor.keyboardHandler) {
+        window.MapHeightEditor.keyboardHandler.disable();
+      }
+
+      // Disable height edit mode on the custom layer
+      if (canvas.mapheight) {
+        canvas.mapheight.disableHeightEditMode();
+      }
+
+      // Fire hook for edit mode change
+      Hooks.callAll("fvtt-map-height.editModeChanged", false);
+
+      // Refresh scene controls
+      ui.controls.render();
+
+      ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeDeactivated"));
+    }
+  }
+
+  /**
+   * Handle quick action buttons (+, 0, -)
+   * 处理快捷操作按钮 (+, 0, -)
+   */
+  onQuickAction(action) {
+    let newHeight = this.currentHeight;
+
+    switch (action) {
+      case 'increment':
+        newHeight = this.currentHeight + 5;
+        break;
+      case 'decrement':
+        newHeight = this.currentHeight - 5;
+        break;
+      case 'zero':
+        newHeight = 0;
+        break;
+    }
+
+    // Validate height
+    if (newHeight < -1000 || newHeight > 1000) {
+      ui.notifications.warn(game.i18n.localize("MAP_HEIGHT.Notifications.InvalidHeight"));
+      return;
+    }
+
+    // Update global state
+    window.MapHeightEditor.currentBrushHeight = newHeight;
+
+    // Update display
+    this.updateHeight(newHeight);
+
+    // Update scene controls
+    ui.controls.render();
   }
 
   /**

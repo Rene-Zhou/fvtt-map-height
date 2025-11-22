@@ -77,7 +77,11 @@
     "BrushDisplay": {
       "Title": "高度画笔",
       "EditMode": "编辑模式：开启",
-      "Close": "关闭画笔显示器"
+      "Close": "关闭画笔显示器",
+      "CloseEditMode": "退出编辑模式",
+      "Increment": "增加高度 5",
+      "Decrement": "减少高度 5",
+      "Zero": "设置高度为 0"
     },
     "KeyboardShortcuts": {
       "Title": "键盘快捷键",
