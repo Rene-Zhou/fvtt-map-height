@@ -6,25 +6,42 @@ A Foundry VTT module for editing map ground heights and automatically managing t
 
 ## Features
 
+### Streamlined UI/UX
+- **One-Click Activation**: Click the Map Height Editor button in scene controls to activate edit mode
+- **Canvas Brush Display**: Floating, draggable window showing current brush height
+  - Color-coded display (blue/green/red matching overlay colors)
+  - Quick adjustment buttons (+1, 0, -1)
+  - Persistent position across sessions
+- **Keyboard Shortcuts**: Adjust brush height without clicking
+  - Arrow Up/Down: ±10
+  - Arrow Left/Right: ±5
+  - Plus/Minus: ±1
+  - 0: Set to zero
+- **Automatic Layer Switching**: Edit mode automatically deactivates when switching to other tools
+
 ### Height Painting
 - **Click and Paint**: Click on grid squares to set their height
 - **Drag Painting**: Click and drag to paint multiple grid squares at once
-- **Predefined Brushes**: Quick access to common height values (0, 5, 10)
-- **Custom Heights**: Set any height value between -1000 and 1000
 - **Visual Overlay**: Color-coded overlay showing height values on the map
   - Blue: Height 0 (water level)
   - Green: Positive elevation
   - Red: Negative elevation
+- **Real-time Updates**: Height changes immediately reflected in the overlay
 
 ### Automatic Token Elevation
 - **Auto-Update**: Tokens automatically update their elevation when moving to different height grids
 - **Multi-Grid Support**: Correctly handles tokens that occupy multiple grid squares
-- **Exception List**: Manage flying units and other tokens that should ignore automatic height updates
+- **Automatic Flying Detection**: Tokens with flying status/movement are automatically excluded
+  - Detects D&D 5e fly speed
+  - Detects active effects with "fly", "flying", "hover", "levitate" in label
+  - Detects token status effects
+- **Manual Exception List**: Still available for edge cases
 
 ### Data Management
 - **Persistent Storage**: Height data is saved per-scene in Scene Flags
 - **Import/Export**: Export height data to JSON files for backup and sharing
 - **Clear All**: Reset all height data with a single click
+- **Settings Menu Integration**: All data management accessible from module settings
 
 ## Installation
 
@@ -52,20 +69,33 @@ A Foundry VTT module for editing map ground heights and automatically managing t
 
 1. **Activate the Module**
    - Enable "Map Height Editor" in your world's module settings
-   - The module interface will appear in the sidebar (GM only)
+   - The Map Height Editor button will appear in the scene controls (GM only)
 
-2. **Enable Height Edit Mode**
-   - Click the "Height Edit Mode" button to activate editing
-   - The height overlay will appear on the canvas
+2. **Enter Edit Mode**
+   - Click the **Map Height Editor** button (mountain icon) in the left scene controls
+   - The height overlay and brush display window will appear automatically
 
-3. **Paint Heights**
-   - Select a brush height from the toolbar
+3. **Adjust Brush Height**
+   - Use the **+/0/-** buttons in the brush display window
+   - Or use **keyboard shortcuts** (arrow keys, +/-, 0)
+   - The current height is shown in the floating window with color coding
+
+4. **Paint Heights**
    - Click on grid squares to set their height
-   - Or click and drag to paint multiple squares
+   - Or click and drag to paint multiple squares at once
+   - The height overlay updates in real-time
 
-4. **Configure Auto-Updates**
-   - Enable "Auto Update Token Heights" to automatically update token elevations
-   - Add flying units to the exception list to prevent auto-updates
+5. **Exit Edit Mode**
+   - Click the **×** button in the brush display window
+   - Or click any other scene control (tokens, walls, etc.)
+   - Edit mode will automatically deactivate
+
+### Data Management
+
+Access data management tools from **Module Settings → Manage Height Data**:
+- **Export Data**: Save current scene's height data to JSON file
+- **Import Data**: Load height data from JSON file
+- **Clear All**: Reset all heights for current scene
 
 ## Configuration
 
@@ -78,12 +108,20 @@ A Foundry VTT module for editing map ground heights and automatically managing t
 
 #### Height Overlay Opacity
 - **Type**: Client Setting (per-player)
-- **Default**: 0.7
+- **Default**: 0.8
 - **Range**: 0.0 (transparent) to 1.0 (opaque)
 - **Description**: Controls the visibility of the height number overlay
 
-#### Default Brush Height
+#### Show Brush Display
 - **Type**: Client Setting (per-player)
-- **Default**: 0
-- **Range**: -1000 to 1000
-- **Description**: The default height value when the module is first activated
+- **Default**: Enabled
+- **Description**: Show the floating brush height display when in edit mode
+
+#### Enable Keyboard Shortcuts
+- **Type**: Client Setting (per-player)
+- **Default**: Enabled
+- **Description**: Enable keyboard shortcuts for adjusting brush height (Arrow keys, +/-, 0)
+
+#### Data Management
+- **Type**: World Setting (GM only)
+- **Description**: Opens dialog for importing, exporting, or clearing height data

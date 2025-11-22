@@ -16,7 +16,6 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
     this.heightManager = heightManager;
     this.isEditMode = false;
     this.currentBrushHeight = 0;
-    this.customHeight = 0;
   }
 
   /**
@@ -91,17 +90,14 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
       isGM: game.user.isGM,
       isEditMode: this.isEditMode,
       currentBrushHeight: this.currentBrushHeight,
-      customHeight: this.customHeight,
       autoUpdate: game.settings.get(MODULE_ID, "autoUpdateTokens"),
       heightEnabled: this.heightManager?.enabled || false,
 
-      // Predefined brush heights
+      // Predefined brush heights (reduced to 3 most common)
       brushHeights: [
         { value: 0, label: "Water", icon: "fas fa-water", color: "#4FC3F7" },
-        { value: 5, label: "Ground", icon: "fas fa-leaf", color: "#81C784" },
-        { value: 10, label: "Hill", icon: "fas fa-mountain", color: "#FFB74D" },
-        { value: 15, label: "High", icon: "fas fa-mountain", color: "#F06292" },
-        { value: 20, label: "Peak", icon: "fas fa-mountain", color: "#9575CD" }
+        { value: 10, label: "Ground", icon: "fas fa-mountain", color: "#81C784" },
+        { value: -10, label: "Low", icon: "fas fa-chevron-down", color: "#E57373" }
       ],
 
       // Exception tokens
@@ -155,6 +151,12 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
 
     // Settings changes
     htmlElement.addEventListener('change', this._onFormChange.bind(this));
+
+    // Real-time custom height input
+    const customHeightInput = htmlElement.querySelector('#customHeight');
+    if (customHeightInput) {
+      customHeightInput.addEventListener('input', this._onCustomHeightInput.bind(this));
+    }
   }
 
   /**
@@ -170,8 +172,8 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
         return this._onToggleEditMode(event);
       case 'select-brush':
         return this._onSelectBrush(event);
-      case 'set-custom-height':
-        return this._onSetCustomHeight(event);
+      case 'adjust-height':
+        return this._onAdjustHeight(event);
       case 'clear-all':
         return this._onClearAll(event);
       case 'export-data':
@@ -202,18 +204,23 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
   _onToggleEditMode(event) {
     event.preventDefault();
     this.isEditMode = !this.isEditMode;
-    
+
     // Update global state
     window.MapHeightEditor.isActive = this.isEditMode;
-    
+
     if (this.isEditMode) {
       ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeActivated"));
       this._showHeightOverlay();
+      this._showBrushDisplay();
     } else {
       ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeDeactivated"));
       this._hideHeightOverlay();
+      this._hideBrushDisplay();
     }
-    
+
+    // Fire hook for edit mode change (for keyboard handler and other listeners)
+    Hooks.callAll(`${MODULE_ID}.editModeChanged`, this.isEditMode);
+
     // Refresh scene controls and sidebar
     ui.controls.render();
     this.render();
@@ -236,23 +243,55 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
   }
 
   /**
-   * Set custom height
-   * 设置自定义高度
+   * Handle custom height input (real-time)
+   * 处理自定义高度输入（实时）
    */
-  async _onSetCustomHeight(event) {
-    event.preventDefault();
+  _onCustomHeightInput(event) {
+    const value = parseInt(event.target.value);
 
-    const form = this.element.querySelector('form');
-    const customHeightInput = form.querySelector('[name="customHeight"]');
-    const customHeight = parseInt(customHeightInput.value);
+    if (isNaN(value)) return;
 
-    if (isNaN(customHeight) || !this.heightManager.validateHeight(customHeight)) {
-      ui.notifications.warn("Invalid height value. Must be between -1000 and 1000.");
+    if (!this.heightManager.validateHeight(value)) {
+      ui.notifications.warn(game.i18n.localize("MAP_HEIGHT.Notifications.InvalidHeight"));
       return;
     }
 
-    this.currentBrushHeight = customHeight;
-    window.MapHeightEditor.currentBrushHeight = customHeight;
+    this.currentBrushHeight = value;
+    window.MapHeightEditor.currentBrushHeight = value;
+
+    // Update brush display if it exists
+    if (window.MapHeightEditor?.brushDisplay) {
+      window.MapHeightEditor.brushDisplay.updateHeight(value);
+    }
+
+    // Partial re-render to update active states
+    this.render();
+  }
+
+  /**
+   * Adjust height by a specific amount
+   * 按指定量调整高度
+   */
+  _onAdjustHeight(event) {
+    event.preventDefault();
+
+    const target = event.target.closest('[data-action="adjust-height"]');
+    const adjustment = parseInt(target.dataset.adjustment);
+
+    const newHeight = this.currentBrushHeight + adjustment;
+
+    if (!this.heightManager.validateHeight(newHeight)) {
+      ui.notifications.warn(game.i18n.localize("MAP_HEIGHT.Notifications.InvalidHeight"));
+      return;
+    }
+
+    this.currentBrushHeight = newHeight;
+    window.MapHeightEditor.currentBrushHeight = newHeight;
+
+    // Update brush display if it exists
+    if (window.MapHeightEditor?.brushDisplay) {
+      window.MapHeightEditor.brushDisplay.updateHeight(newHeight);
+    }
 
     this.render();
   }
@@ -399,6 +438,28 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
   _hideHeightOverlay() {
     if (window.MapHeightEditor?.heightOverlay) {
       window.MapHeightEditor.heightOverlay.hide();
+    }
+  }
+
+  /**
+   * Show brush display
+   * 显示画笔显示器
+   */
+  _showBrushDisplay() {
+    const shouldShow = game.settings.get(MODULE_ID, "brushDisplayVisible");
+    if (shouldShow && window.MapHeightEditor?.brushDisplay) {
+      window.MapHeightEditor.brushDisplay.show();
+      window.MapHeightEditor.brushDisplay.updateHeight(this.currentBrushHeight);
+    }
+  }
+
+  /**
+   * Hide brush display
+   * 隐藏画笔显示器
+   */
+  _hideBrushDisplay() {
+    if (window.MapHeightEditor?.brushDisplay) {
+      window.MapHeightEditor.brushDisplay.hide();
     }
   }
 

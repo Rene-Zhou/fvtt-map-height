@@ -20,6 +20,8 @@
       "HeightEditMode": "高度编辑模式",
       "HeightBrush": "高度画笔",
       "CurrentBrush": "当前画笔",
+      "CustomHeight": "自定义高度",
+      "KeyboardHint": "使用方向键和 +/- 键调整高度",
       "ExceptionList": "飞行单位例外列表"
     },
     "Tooltips": {
@@ -66,10 +68,33 @@
       "HeightModeActivated": "高度编辑模式已激活",
       "HeightModeDeactivated": "高度编辑模式已关闭",
       "HeightUpdated": "网格高度已更新为 {height}",
+      "InvalidHeight": "无效的高度值。必须在 -1000 到 1000 之间。",
       "TokenExceptionAdded": "Token已添加到飞行单位例外列表",
       "TokenExceptionRemoved": "Token已从飞行单位例外列表中移除",
       "ErrorSavingData": "保存高度数据时出错",
       "ErrorLoadingData": "加载高度数据时出错"
+    },
+    "BrushDisplay": {
+      "Title": "高度画笔",
+      "EditMode": "编辑模式：开启",
+      "Close": "关闭画笔显示器",
+      "CloseEditMode": "退出编辑模式",
+      "Increment": "增加高度 1",
+      "Decrement": "减少高度 1",
+      "Zero": "设置高度为 0"
+    },
+    "KeyboardShortcuts": {
+      "Title": "键盘快捷键",
+      "Key": "按键",
+      "Action": "操作",
+      "ArrowUp": "增加高度 10",
+      "ArrowDown": "减少高度 10",
+      "ArrowLeft": "减少高度 5",
+      "ArrowRight": "增加高度 5",
+      "Plus": "增加高度 1",
+      "Minus": "减少高度 1",
+      "Zero": "设置高度为 0",
+      "Hint": "键盘快捷键仅在高度编辑模式激活且未聚焦输入框时有效。"
     }
   }
 }

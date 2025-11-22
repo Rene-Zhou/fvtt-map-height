@@ -20,6 +20,8 @@
       "HeightEditMode": "Height Edit Mode",
       "HeightBrush": "Height Brush",
       "CurrentBrush": "Current Brush",
+      "CustomHeight": "Custom Height",
+      "KeyboardHint": "Use arrow keys and +/- to adjust height",
       "ExceptionList": "Flying Units Exception List"
     },
     "Tooltips": {
@@ -66,10 +68,33 @@
       "HeightModeActivated": "Height edit mode activated",
       "HeightModeDeactivated": "Height edit mode deactivated",
       "HeightUpdated": "Grid height updated to {height}",
+      "InvalidHeight": "Invalid height value. Must be between -1000 and 1000.",
       "TokenExceptionAdded": "Token added to flying units exception list",
       "TokenExceptionRemoved": "Token removed from flying units exception list",
       "ErrorSavingData": "Error saving height data",
       "ErrorLoadingData": "Error loading height data"
+    },
+    "BrushDisplay": {
+      "Title": "Height Brush",
+      "EditMode": "Edit Mode: ON",
+      "Close": "Close brush display",
+      "CloseEditMode": "Exit edit mode",
+      "Increment": "Increase height by 1",
+      "Decrement": "Decrease height by 1",
+      "Zero": "Set height to 0"
+    },
+    "KeyboardShortcuts": {
+      "Title": "Keyboard Shortcuts",
+      "Key": "Key",
+      "Action": "Action",
+      "ArrowUp": "Increase height by 10",
+      "ArrowDown": "Decrease height by 10",
+      "ArrowLeft": "Decrease height by 5",
+      "ArrowRight": "Increase height by 5",
+      "Plus": "Increase height by 1",
+      "Minus": "Decrease height by 1",
+      "Zero": "Set height to 0",
+      "Hint": "Keyboard shortcuts only work when height edit mode is active and no input field is focused."
     }
   }
 }

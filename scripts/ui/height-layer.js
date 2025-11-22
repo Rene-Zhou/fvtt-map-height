@@ -30,12 +30,32 @@ export default class MapHeightLayer extends InteractionLayer {
    */
   activate() {
     super.activate();
-    
-    // Show height overlay if height edit mode is active
-    if (window.MapHeightEditor?.isActive && window.MapHeightEditor?.heightOverlay) {
+
+    // Activate height edit mode
+    window.MapHeightEditor.isActive = true;
+    this.isHeightEditMode = true;
+
+    // Show height overlay
+    if (window.MapHeightEditor?.heightOverlay) {
       window.MapHeightEditor.heightOverlay.show();
     }
-    
+
+    // Show brush display
+    if (window.MapHeightEditor?.brushDisplay) {
+      window.MapHeightEditor.brushDisplay.show();
+    }
+
+    // Enable keyboard shortcuts
+    if (window.MapHeightEditor?.keyboardHandler) {
+      window.MapHeightEditor.keyboardHandler.enable();
+    }
+
+    // Fire activation hook
+    Hooks.callAll("fvtt-map-height.editModeChanged", true);
+
+    // Show notification
+    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeActivated"));
+
     return this;
   }
 
@@ -45,12 +65,38 @@ export default class MapHeightLayer extends InteractionLayer {
    */
   deactivate() {
     super.deactivate();
-    
+
+    // Only proceed if edit mode was actually active
+    // 只有在编辑模式确实激活时才执行
+    if (!window.MapHeightEditor?.isActive) {
+      return this;
+    }
+
+    // Deactivate height edit mode
+    window.MapHeightEditor.isActive = false;
+    this.isHeightEditMode = false;
+
     // Hide height overlay
     if (window.MapHeightEditor?.heightOverlay) {
       window.MapHeightEditor.heightOverlay.hide();
     }
-    
+
+    // Hide brush display
+    if (window.MapHeightEditor?.brushDisplay) {
+      window.MapHeightEditor.brushDisplay.hide();
+    }
+
+    // Disable keyboard shortcuts
+    if (window.MapHeightEditor?.keyboardHandler) {
+      window.MapHeightEditor.keyboardHandler.disable();
+    }
+
+    // Fire deactivation hook
+    Hooks.callAll("fvtt-map-height.editModeChanged", false);
+
+    // Show notification
+    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeDeactivated"));
+
     return this;
   }
 
@@ -90,19 +136,6 @@ export default class MapHeightLayer extends InteractionLayer {
     return true;
   }
 
-  /**
-   * Enable height edit mode for this layer
-   * 为此层启用高度编辑模式
-   */
-  enableHeightEditMode() {
-    this.isHeightEditMode = true;
-  }
-
-  /**
-   * Disable height edit mode for this layer  
-   * 为此层禁用高度编辑模式
-   */
-  disableHeightEditMode() {
-    this.isHeightEditMode = false;
-  }
+  // Height edit mode is now controlled by activate/deactivate methods
+  // 高度编辑模式现在由activate/deactivate方法控制
 }

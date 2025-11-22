@@ -20,13 +20,13 @@
   {{#if isEditMode}}
   <section class="map-height-brushes">
     <h4><i class="fas fa-paint-brush"></i> {{localize "MAP_HEIGHT.Controls.HeightBrush"}}</h4>
-    
-    <!-- Predefined Height Brushes -->
+
+    <!-- Quick Preset Brushes -->
     <div class="map-height-brush-group">
       {{#each brushHeights}}
-      <button type="button" 
+      <button type="button"
               class="map-height-brush {{#if (eq @root.currentBrushHeight this.value)}}active{{/if}}"
-              data-action="select-brush" 
+              data-action="select-brush"
               data-height="{{this.value}}"
               data-tooltip="{{this.label}} ({{this.value}})"
               style="border-color: {{this.color}};">
@@ -36,28 +36,79 @@
       {{/each}}
     </div>
 
-    <!-- Custom Height Input -->
-    <div class="map-height-custom-input">
-      <label for="customHeight">{{localize "MAP_HEIGHT.Tooltips.CustomHeight"}}:</label>
-      <div class="flexrow">
-        <input type="number" 
-               name="customHeight" 
-               value="{{customHeight}}" 
-               min="-1000" 
-               max="1000" 
+    <!-- Custom Height Input with Quick Adjustments -->
+    <div class="map-height-custom-section">
+      <label for="customHeight">{{localize "MAP_HEIGHT.Controls.CustomHeight"}}:</label>
+
+      <!-- Main Height Input -->
+      <div class="map-height-input-group">
+        <input type="number"
+               name="customHeight"
+               id="customHeight"
+               value="{{currentBrushHeight}}"
+               min="-1000"
+               max="1000"
                step="1"
-               placeholder="Custom height">
-        <button type="button" 
-                data-action="set-custom-height" 
-                data-tooltip="{{localize 'MAP_HEIGHT.Dialog.CustomHeight.Apply'}}">
-          <i class="fas fa-check"></i>
+               data-action="custom-height-input"
+               placeholder="Enter height">
+      </div>
+
+      <!-- Quick Adjustment Buttons -->
+      <div class="map-height-adjustment-buttons">
+        <button type="button"
+                class="adjustment-btn large"
+                data-action="adjust-height"
+                data-adjustment="-10"
+                data-tooltip="-10">
+          <i class="fas fa-angle-double-down"></i>
+          <span>-10</span>
+        </button>
+        <button type="button"
+                class="adjustment-btn medium"
+                data-action="adjust-height"
+                data-adjustment="-5"
+                data-tooltip="-5">
+          <i class="fas fa-angle-down"></i>
+          <span>-5</span>
+        </button>
+        <button type="button"
+                class="adjustment-btn small"
+                data-action="adjust-height"
+                data-adjustment="-1"
+                data-tooltip="-1">
+          <i class="fas fa-minus"></i>
+          <span>-1</span>
+        </button>
+        <button type="button"
+                class="adjustment-btn small"
+                data-action="adjust-height"
+                data-adjustment="1"
+                data-tooltip="+1">
+          <i class="fas fa-plus"></i>
+          <span>+1</span>
+        </button>
+        <button type="button"
+                class="adjustment-btn medium"
+                data-action="adjust-height"
+                data-adjustment="5"
+                data-tooltip="+5">
+          <i class="fas fa-angle-up"></i>
+          <span>+5</span>
+        </button>
+        <button type="button"
+                class="adjustment-btn large"
+                data-action="adjust-height"
+                data-adjustment="10"
+                data-tooltip="+10">
+          <i class="fas fa-angle-double-up"></i>
+          <span>+10</span>
         </button>
       </div>
-    </div>
 
-    <!-- Current Brush Display -->
-    <div class="current-brush-display">
-      <strong>Current Brush: {{currentBrushHeight}}</strong>
+      <!-- Keyboard Shortcuts Hint -->
+      <div class="keyboard-hint">
+        <small><i class="fas fa-keyboard"></i> {{localize "MAP_HEIGHT.Controls.KeyboardHint"}}</small>
+      </div>
     </div>
   </section>
   {{/if}}
