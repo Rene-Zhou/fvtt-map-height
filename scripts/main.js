@@ -165,7 +165,7 @@ function registerModuleSettings() {
     type: Boolean,
     default: true
   });
-  
+
   // Height visualization opacity
   game.settings.register(MODULE_ID, "overlayOpacity", {
     name: "Height Overlay Opacity",
@@ -179,6 +179,35 @@ function registerModuleSettings() {
       step: 0.1
     },
     default: 0.8
+  });
+
+  // Brush display position (not shown in config menu)
+  game.settings.register(MODULE_ID, "brushDisplayPosition", {
+    name: "Brush Display Position",
+    scope: "client",
+    config: false,
+    type: Object,
+    default: { x: 20, y: 20 }
+  });
+
+  // Brush display visible
+  game.settings.register(MODULE_ID, "brushDisplayVisible", {
+    name: "Show Brush Display",
+    hint: "Show the on-canvas brush height display when in edit mode",
+    scope: "client",
+    config: true,
+    type: Boolean,
+    default: true
+  });
+
+  // Keyboard shortcuts enabled
+  game.settings.register(MODULE_ID, "keyboardShortcutsEnabled", {
+    name: "Enable Keyboard Shortcuts",
+    hint: "Enable keyboard shortcuts for adjusting brush height (Arrow keys, +/-)",
+    scope: "client",
+    config: true,
+    type: Boolean,
+    default: true
   });
 }
 
@@ -202,7 +231,15 @@ async function loadModuleComponents() {
     
     const HeightOverlay = await import('./ui/height-overlay.js');
     MapHeightEditor.HeightOverlay = HeightOverlay.default;
-    
+
+    // Import brush display
+    const BrushDisplay = await import('./ui/brush-display.js');
+    MapHeightEditor.BrushDisplay = BrushDisplay.default;
+
+    // Import keyboard handler
+    const KeyboardHandler = await import('./keyboard-handler.js');
+    MapHeightEditor.KeyboardHandler = KeyboardHandler.default;
+
     // Import debug helper (only in debug mode)
     if (game.settings.get("core", "debug") || window.location.search.includes("debug")) {
       const DebugHelper = await import('./debug-helper.js');
@@ -242,6 +279,15 @@ function initializeGMInterface() {
   // Initialize height overlay
   MapHeightEditor.heightOverlay = new MapHeightEditor.HeightOverlay(MapHeightEditor.heightManager);
 
+  // Initialize brush display
+  MapHeightEditor.brushDisplay = new MapHeightEditor.BrushDisplay();
+
+  // Initialize keyboard handler
+  MapHeightEditor.keyboardHandler = new MapHeightEditor.KeyboardHandler(
+    MapHeightEditor.sidebar,
+    MapHeightEditor.brushDisplay
+  );
+
   // Install debug commands if available
   if (MapHeightEditor.DebugHelper) {
     MapHeightEditor.DebugHelper.installDebugCommands();
@@ -255,7 +301,7 @@ function initializeGMInterface() {
  */
 function toggleHeightEditMode() {
   MapHeightEditor.isActive = !MapHeightEditor.isActive;
-  
+
   if (MapHeightEditor.isActive) {
     // Show sidebar
     if (MapHeightEditor.sidebar) {
@@ -267,6 +313,10 @@ function toggleHeightEditMode() {
     }
     // Show height overlay
     showHeightOverlay();
+    // Show brush display
+    showBrushDisplay();
+    // Enable keyboard shortcuts
+    enableKeyboardShortcuts();
   } else {
     // Hide sidebar
     if (MapHeightEditor.sidebar) {
@@ -278,8 +328,15 @@ function toggleHeightEditMode() {
     }
     // Hide height overlay
     hideHeightOverlay();
+    // Hide brush display
+    hideBrushDisplay();
+    // Disable keyboard shortcuts
+    disableKeyboardShortcuts();
   }
-  
+
+  // Fire hook for edit mode change
+  Hooks.callAll(`${MODULE_ID}.editModeChanged`, MapHeightEditor.isActive);
+
   // Refresh scene controls to update button state
   ui.controls.render();
 }
@@ -309,6 +366,11 @@ function setBrushHeight(height) {
     MapHeightEditor.sidebar.render();
   }
 
+  // Update brush display if it's visible
+  if (MapHeightEditor.brushDisplay && MapHeightEditor.brushDisplay.isVisible) {
+    MapHeightEditor.brushDisplay.updateHeight(height);
+  }
+
   // Refresh scene controls to update button states
   ui.controls.render();
 }
@@ -334,6 +396,48 @@ function hideHeightOverlay() {
     MapHeightEditor.heightOverlay.hide();
   } else {
     console.warn(`${MODULE_TITLE} | Height overlay not initialized`);
+  }
+}
+
+/**
+ * Show brush display
+ * 显示画笔显示器
+ */
+function showBrushDisplay() {
+  const shouldShow = game.settings.get(MODULE_ID, "brushDisplayVisible");
+  if (shouldShow && MapHeightEditor.brushDisplay) {
+    MapHeightEditor.brushDisplay.show();
+    MapHeightEditor.brushDisplay.updateHeight(MapHeightEditor.currentBrushHeight);
+  }
+}
+
+/**
+ * Hide brush display
+ * 隐藏画笔显示器
+ */
+function hideBrushDisplay() {
+  if (MapHeightEditor.brushDisplay) {
+    MapHeightEditor.brushDisplay.hide();
+  }
+}
+
+/**
+ * Enable keyboard shortcuts
+ * 启用键盘快捷键
+ */
+function enableKeyboardShortcuts() {
+  if (MapHeightEditor.keyboardHandler) {
+    MapHeightEditor.keyboardHandler.enable();
+  }
+}
+
+/**
+ * Disable keyboard shortcuts
+ * 禁用键盘快捷键
+ */
+function disableKeyboardShortcuts() {
+  if (MapHeightEditor.keyboardHandler) {
+    MapHeightEditor.keyboardHandler.disable();
   }
 }
 
