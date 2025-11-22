@@ -94,8 +94,15 @@ Hooks.on('getSceneControlButtons', (controls) => {
     name: "mapheight",
     title: "Map Height Editor",
     icon: "fas fa-mountain",
-    layer: "mapheight", // Use our custom layer - activation handles edit mode
-    tools: [] // No secondary tools - layer activation directly enables edit mode
+    layer: "mapheight",
+    activeTool: "brush", // Default active tool
+    tools: [
+      {
+        name: "brush",
+        title: "Paint Height",
+        icon: "fas fa-paint-brush"
+      }
+    ]
   };
 
   controls.push(mapHeightControl);
