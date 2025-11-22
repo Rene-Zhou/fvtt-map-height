@@ -357,10 +357,9 @@ export default class HeightOverlay extends PIXI.Container {
   getTextStyle(height) {
     const baseSize = Math.max(12, this.gridSize / 8);
 
-    // Get font size multiplier from settings
-    // 从设置中获取字体大小倍数
-    const fontMultiplier = game.settings.get(MODULE_ID, "fontSizeMultiplier");
-    const fontSize = baseSize * fontMultiplier;
+    // Use 3x font size multiplier for better visibility
+    // 使用3倍字体大小以提高可见性
+    const fontSize = baseSize * 3.0;
 
     return new PIXI.TextStyle({
       fontFamily: 'Arial, sans-serif',
@@ -676,12 +675,6 @@ export default class HeightOverlay extends PIXI.Container {
     if (setting.key === `${MODULE_ID}.overlayOpacity`) {
       this.opacity = value;
       this.alpha = value;
-    } else if (setting.key === `${MODULE_ID}.fontSizeMultiplier`) {
-      // Refresh all grid elements to update font size
-      // 刷新所有网格元素以更新字体大小
-      if (this.isVisible) {
-        this.refresh();
-      }
     }
   }
 

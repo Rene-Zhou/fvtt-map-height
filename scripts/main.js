@@ -190,21 +190,6 @@ function registerModuleSettings() {
     type: Number,
     default: 0
   });
-
-  // Font size multiplier for grid height numbers
-  game.settings.register(MODULE_ID, "fontSizeMultiplier", {
-    name: "Height Number Font Size",
-    hint: "Size multiplier for grid height numbers (1-5)",
-    scope: "client",
-    config: true,
-    type: Number,
-    range: {
-      min: 1,
-      max: 5,
-      step: 0.5
-    },
-    default: 3.0
-  });
 }
 
 /**

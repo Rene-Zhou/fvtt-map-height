@@ -94,7 +94,6 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
       customHeight: this.customHeight,
       autoUpdate: game.settings.get(MODULE_ID, "autoUpdateTokens"),
       overlayOpacity: game.settings.get(MODULE_ID, "overlayOpacity"),
-      fontSizeMultiplier: game.settings.get(MODULE_ID, "fontSizeMultiplier"),
       heightEnabled: this.heightManager?.enabled || false,
 
       // Predefined brush heights
@@ -205,8 +204,6 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
   _onFormInput(event) {
     if (event.target.name === 'overlayOpacity') {
       return this._onOpacityChange(event);
-    } else if (event.target.name === 'fontSizeMultiplier') {
-      return this._onFontSizeChange(event);
     }
   }
 
@@ -416,19 +413,6 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
     if (this.isEditMode) {
       this._updateOverlayOpacity(opacity);
     }
-  }
-
-  /**
-   * Handle font size slider changes
-   * 处理字体大小滑块变化
-   */
-  async _onFontSizeChange(event) {
-    const target = event.target;
-    const fontSize = parseFloat(target.value);
-    await game.settings.set(MODULE_ID, "fontSizeMultiplier", fontSize);
-
-    // The overlay will automatically refresh via the onSettingUpdate hook
-    // 覆盖层会通过onSettingUpdate钩子自动刷新
   }
 
   /**
