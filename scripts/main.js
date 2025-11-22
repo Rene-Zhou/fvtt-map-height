@@ -86,17 +86,8 @@ Hooks.on('getSceneControlButtons', (controls) => {
     name: "mapheight",
     title: "Map Height Editor",
     icon: "fas fa-mountain",
-    layer: "mapheight", // Use our custom layer
-    tools: [
-      {
-        name: "height-edit-mode",
-        title: "Toggle Height Edit Mode",
-        icon: "fas fa-edit",
-        onClick: () => toggleHeightEditMode(),
-        active: MapHeightEditor.isActive,
-        toggle: true
-      }
-    ]
+    layer: "mapheight", // Use our custom layer - activation handles edit mode
+    tools: [] // No secondary tools - layer activation directly enables edit mode
   };
 
   controls.push(mapHeightControl);
@@ -378,113 +369,9 @@ function initializeGMInterface() {
 
 }
 
-/**
- * Toggle height edit mode
- * 切换高度编辑模式
- */
-function toggleHeightEditMode() {
-  MapHeightEditor.isActive = !MapHeightEditor.isActive;
-
-  if (MapHeightEditor.isActive) {
-    // Enable height edit mode on the custom layer
-    if (canvas.mapheight) {
-      canvas.mapheight.enableHeightEditMode();
-    }
-    // Show height overlay
-    showHeightOverlay();
-    // Show brush display
-    showBrushDisplay();
-    // Enable keyboard shortcuts
-    enableKeyboardShortcuts();
-
-    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeActivated"));
-  } else {
-    // Disable height edit mode on the custom layer
-    if (canvas.mapheight) {
-      canvas.mapheight.disableHeightEditMode();
-    }
-    // Hide height overlay
-    hideHeightOverlay();
-    // Hide brush display
-    hideBrushDisplay();
-    // Disable keyboard shortcuts
-    disableKeyboardShortcuts();
-
-    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeDeactivated"));
-  }
-
-  // Fire hook for edit mode change
-  Hooks.callAll(`${MODULE_ID}.editModeChanged`, MapHeightEditor.isActive);
-
-  // Refresh scene controls to update button state
-  ui.controls.render();
-}
-
-/**
- * Show height overlay
- * 显示高度覆盖层
- */
-function showHeightOverlay() {
-  if (MapHeightEditor.heightOverlay) {
-    MapHeightEditor.heightOverlay.show();
-  } else {
-    console.warn(`${MODULE_TITLE} | Height overlay not initialized`);
-  }
-}
-
-/**
- * Hide height overlay
- * 隐藏高度覆盖层
- */
-function hideHeightOverlay() {
-  if (MapHeightEditor.heightOverlay) {
-    MapHeightEditor.heightOverlay.hide();
-  } else {
-    console.warn(`${MODULE_TITLE} | Height overlay not initialized`);
-  }
-}
-
-/**
- * Show brush display
- * 显示画笔显示器
- */
-function showBrushDisplay() {
-  const shouldShow = game.settings.get(MODULE_ID, "brushDisplayVisible");
-  if (shouldShow && MapHeightEditor.brushDisplay) {
-    MapHeightEditor.brushDisplay.show();
-    MapHeightEditor.brushDisplay.updateHeight(MapHeightEditor.currentBrushHeight);
-  }
-}
-
-/**
- * Hide brush display
- * 隐藏画笔显示器
- */
-function hideBrushDisplay() {
-  if (MapHeightEditor.brushDisplay) {
-    MapHeightEditor.brushDisplay.hide();
-  }
-}
-
-/**
- * Enable keyboard shortcuts
- * 启用键盘快捷键
- */
-function enableKeyboardShortcuts() {
-  if (MapHeightEditor.keyboardHandler) {
-    MapHeightEditor.keyboardHandler.enable();
-  }
-}
-
-/**
- * Disable keyboard shortcuts
- * 禁用键盘快捷键
- */
-function disableKeyboardShortcuts() {
-  if (MapHeightEditor.keyboardHandler) {
-    MapHeightEditor.keyboardHandler.disable();
-  }
-}
+// Edit mode is now controlled by canvas layer activation/deactivation
+// 编辑模式现在由canvas层的激活/停用控制
+// See height-layer.js activate() and deactivate() methods
 
 // Export for potential use by other modules
 export { MODULE_ID, MODULE_TITLE };

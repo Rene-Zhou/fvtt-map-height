@@ -185,41 +185,18 @@ export default class BrushDisplay {
   }
 
   /**
-   * Handle close button - exits edit mode
-   * 处理关闭按钮 - 退出编辑模式
+   * Handle close button - exits edit mode by switching to tokens layer
+   * 处理关闭按钮 - 通过切换到tokens层退出编辑模式
    */
   onCloseEditMode(event) {
     event.stopPropagation();
 
-    // Toggle edit mode off via the global state
-    if (window.MapHeightEditor?.isActive) {
-      window.MapHeightEditor.isActive = false;
-
-      // Hide overlay
-      if (window.MapHeightEditor.heightOverlay) {
-        window.MapHeightEditor.heightOverlay.hide();
-      }
-
-      // Hide this display
-      this.hide();
-
-      // Disable keyboard shortcuts
-      if (window.MapHeightEditor.keyboardHandler) {
-        window.MapHeightEditor.keyboardHandler.disable();
-      }
-
-      // Disable height edit mode on the custom layer
-      if (canvas.mapheight) {
-        canvas.mapheight.disableHeightEditMode();
-      }
-
-      // Fire hook for edit mode change
-      Hooks.callAll("fvtt-map-height.editModeChanged", false);
-
-      // Refresh scene controls
-      ui.controls.render();
-
-      ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.HeightModeDeactivated"));
+    // Switch to tokens layer, which will automatically deactivate mapheight layer
+    // 切换到tokens层，这会自动停用mapheight层
+    if (window.MapHeightEditor?.isActive && ui.controls) {
+      // Switch to the default tokens control
+      // This triggers the mapheight layer's deactivate() method
+      ui.controls.initialize({ tool: "select", layer: "tokens" });
     }
   }
 
