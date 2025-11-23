@@ -194,14 +194,18 @@ export default class TokenAutomation {
    * Handle area height changes
    * 处理区域高度变化
    */
-  onAreaHeightChanged(gridPositions, height) {
+  onAreaHeightChanged(data) {
     if (!this.isEnabled || !game.settings.get(MODULE_ID, "autoUpdateTokens")) {
       return;
     }
 
+    // Destructure data object
+    // 解构数据对象
+    const { gridPositions, height } = data;
+
     // Find all tokens in the affected area
     const affectedTokens = new Set();
-    
+
     gridPositions.forEach(pos => {
       const tokensOnGrid = this.getTokensOnGrid(pos.x, pos.y);
       tokensOnGrid.forEach(token => {

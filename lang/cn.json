@@ -139,6 +139,12 @@
       "Minus": "减少高度 1",
       "Zero": "设置高度为 0",
       "Hint": "键盘快捷键仅在高度编辑模式激活且未聚焦输入框时有效。"
+    },
+    "RectangleFill": {
+      "FirstPointSelected": "第一个顶点已选择。按住 Shift 并点击另一个网格以填充矩形区域。",
+      "RectangleFilled": "矩形区域已用当前画笔高度填充。",
+      "SelectionCancelled": "矩形选择已取消。",
+      "Hint": "按住 Shift 并点击两个网格以填充矩形区域"
     }
   }
 }
