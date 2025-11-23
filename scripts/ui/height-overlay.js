@@ -404,12 +404,22 @@ export default class HeightOverlay extends PIXI.Container {
 
     event.stopPropagation();
 
+    // Debug: log all event details
+    // 调试：记录所有事件详情
+    console.log(`${MODULE_ID} | Grid pointer down at (${gridX}, ${gridY})`);
+    console.log(`${MODULE_ID} | Event data:`, event.data);
+    console.log(`${MODULE_ID} | Original event:`, event.data.originalEvent);
+    console.log(`${MODULE_ID} | Shift key pressed:`, event.data.originalEvent?.shiftKey);
+
     // Check if shift key is pressed for rectangle mode
     // 检查是否按下 shift 键以启用矩形模式
-    if (event.data.originalEvent.shiftKey) {
+    if (event.data.originalEvent && event.data.originalEvent.shiftKey) {
+      console.log(`${MODULE_ID} | Shift key detected, calling handleRectangleClick`);
       this.handleRectangleClick(gridX, gridY);
       return;
     }
+
+    console.log(`${MODULE_ID} | No shift key, starting drag operation`);
 
     // Start drag operation
     this.isDragging = true;
