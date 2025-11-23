@@ -494,6 +494,13 @@ export default class TokenAutomation {
   /**
    * Check if a token has flying status
    * 检查Token是否具有飞行状态
+   *
+   * Uses multiple detection methods:
+   * 1. Actor's active effects (v12+ recommended approach)
+   * 2. D&D 5e fly speed attribute
+   * 3. Custom flying properties
+   *
+   * Note: Does NOT use tokenDocument.effects (deprecated in v12)
    */
   hasFlyingStatus(tokenDocument) {
     // Get the actor
@@ -505,6 +512,7 @@ export default class TokenAutomation {
     const flyingStatuses = ['fly', 'flying', 'hover', 'hovering', 'levitate', 'levitating'];
 
     // Method 1: Check actor's active effects
+    // 检查Actor的激活效果 - 这是v12+推荐的方式
     if (actor.effects) {
       for (const effect of actor.effects) {
         const label = effect.label?.toLowerCase() || effect.name?.toLowerCase() || '';
@@ -521,17 +529,8 @@ export default class TokenAutomation {
       }
     }
 
-    // Method 2: Check token document's status effects
-    if (tokenDocument.effects) {
-      for (const effect of tokenDocument.effects) {
-        const effectLower = (typeof effect === 'string' ? effect : effect.id || '').toLowerCase();
-        if (flyingStatuses.some(status => effectLower.includes(status))) {
-          return true;
-        }
-      }
-    }
-
-    // Method 3: For D&D 5e system - check movement speeds
+    // Method 2: For D&D 5e system - check movement speeds
+    // D&D 5e系统 - 检查移动速度
     if (game.system.id === 'dnd5e' && actor.system?.attributes?.movement?.fly) {
       const flySpeed = actor.system.attributes.movement.fly;
       // If fly speed exists and is greater than 0, consider it flying
@@ -540,7 +539,8 @@ export default class TokenAutomation {
       }
     }
 
-    // Method 4: Check for custom flying property (some systems use this)
+    // Method 3: Check for custom flying property (some systems use this)
+    // 检查自定义飞行属性（某些系统使用此方式）
     if (actor.system?.attributes?.flying === true) {
       return true;
     }
