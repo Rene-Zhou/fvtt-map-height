@@ -1208,13 +1208,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  color: #000 !important;
 }
 
 .data-management-header .hint {
   margin: 0;
   font-size: 0.9em;
   font-style: italic;
-  color: var(--color-text-light, #ccc);
+  color: #333 !important;
 }
 
 .data-stats {
@@ -1228,7 +1229,7 @@
 .data-stats h3 {
   margin: 0 0 10px 0;
   font-size: 1em;
-  color: var(--color-text-primary, #f0f0e0);
+  color: #000 !important;
 }
 
 .stats-grid {
@@ -1253,14 +1254,14 @@
 
 .stat-label {
   font-size: 0.85em;
-  color: var(--color-text-light, #ccc);
+  color: #333 !important;
 }
 
 .stat-value {
   margin-left: auto;
   font-size: 1.1em;
   font-weight: bold;
-  color: var(--color-text-primary, #f0f0e0);
+  color: #000 !important;
 }
 
 .data-actions {
@@ -1270,7 +1271,7 @@
 .data-actions h3 {
   margin: 0 0 10px 0;
   font-size: 1em;
-  color: var(--color-text-primary, #f0f0e0);
+  color: #000 !important;
 }
 
 .data-action-btn {
@@ -1302,12 +1303,12 @@
 
 .data-action-btn strong {
   font-size: 1em;
-  color: var(--color-text-primary, #f0f0e0);
+  color: #000 !important;
 }
 
 .data-action-btn small {
   font-size: 0.8em;
-  color: var(--color-text-light, #ccc);
+  color: #333 !important;
 }
 
 .data-action-btn:hover {
