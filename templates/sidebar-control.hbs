@@ -115,7 +115,7 @@
 
   <!-- Settings Section -->
   <section class="map-height-settings">
-    <h4><i class="fas fa-cog"></i> Settings</h4>
+    <h4><i class="fas fa-cog"></i> {{localize "MAP_HEIGHT.Settings.Title"}}</h4>
 
     <div class="form-group">
       <label class="checkbox">
@@ -131,9 +131,9 @@
     <h4><i class="fas fa-plane"></i> {{localize "MAP_HEIGHT.Controls.ExceptionList"}}</h4>
     
     <div class="exception-controls">
-      <button type="button" 
-              data-action="add-exception" 
-              data-tooltip="Add selected token(s) to exception list">
+      <button type="button"
+              data-action="add-exception"
+              data-tooltip="{{localize 'MAP_HEIGHT.Tooltips.AddException'}}">
         <i class="fas fa-plus"></i>
         {{localize "MAP_HEIGHT.Dialog.ExceptionManagement.AddException"}}
       </button>
@@ -161,35 +161,35 @@
       {{/each}}
     </div>
     {{else}}
-    <p class="no-exceptions">No flying units configured</p>
+    <p class="no-exceptions">{{localize "MAP_HEIGHT.Dialog.ExceptionManagement.NoExceptions"}}</p>
     {{/if}}
   </section>
 
   <!-- Data Management Section -->
   <section class="map-height-data-management">
-    <h4><i class="fas fa-database"></i> Data Management</h4>
-    
+    <h4><i class="fas fa-database"></i> {{localize "MAP_HEIGHT.DataManagement.Title"}}</h4>
+
     <div class="data-controls">
-      <button type="button" 
-              data-action="export-data" 
-              data-tooltip="Export height data to JSON file">
+      <button type="button"
+              data-action="export-data"
+              data-tooltip="{{localize 'MAP_HEIGHT.Tooltips.ExportData'}}">
         <i class="fas fa-download"></i>
-        Export Data
+        {{localize "MAP_HEIGHT.DataManagement.Operations.Export.Button"}}
       </button>
-      
-      <button type="button" 
-              data-action="import-data" 
-              data-tooltip="Import height data from JSON file">
+
+      <button type="button"
+              data-action="import-data"
+              data-tooltip="{{localize 'MAP_HEIGHT.Tooltips.ImportData'}}">
         <i class="fas fa-upload"></i>
-        Import Data
+        {{localize "MAP_HEIGHT.DataManagement.Operations.Import.Button"}}
       </button>
-      
-      <button type="button" 
-              data-action="clear-all" 
-              data-tooltip="Clear all height data"
+
+      <button type="button"
+              data-action="clear-all"
+              data-tooltip="{{localize 'MAP_HEIGHT.Tooltips.ClearAll'}}"
               class="danger">
         <i class="fas fa-trash"></i>
-        Clear All
+        {{localize "MAP_HEIGHT.DataManagement.Operations.Clear.Button"}}
       </button>
     </div>
   </section>
@@ -197,14 +197,14 @@
   <!-- Help Section -->
   <section class="map-height-help">
     <details>
-      <summary><i class="fas fa-question-circle"></i> How to Use</summary>
+      <summary><i class="fas fa-question-circle"></i> {{localize "MAP_HEIGHT.Help.Title"}}</summary>
       <div class="help-content">
         <ol>
-          <li>Click "Height Edit Mode" to activate editing</li>
-          <li>Select a brush height from the toolbar</li>
-          <li>Click on grid squares to set their height</li>
-          <li>Tokens will automatically update their elevation</li>
-          <li>Add flying units to the exception list to prevent auto-updates</li>
+          <li>{{localize "MAP_HEIGHT.Help.Step1"}}</li>
+          <li>{{localize "MAP_HEIGHT.Help.Step2"}}</li>
+          <li>{{localize "MAP_HEIGHT.Help.Step3"}}</li>
+          <li>{{localize "MAP_HEIGHT.Help.Step4"}}</li>
+          <li>{{localize "MAP_HEIGHT.Help.Step5"}}</li>
         </ol>
       </div>
     </details>

@@ -14,6 +14,19 @@
       "DefaultBrushHeight": {
         "Name": "Default Brush Height",
         "Hint": "Default height value for the brush tool"
+      },
+      "BrushDisplayVisible": {
+        "Name": "Show Brush Display",
+        "Hint": "Show the on-canvas brush height display when in edit mode"
+      },
+      "KeyboardShortcuts": {
+        "Name": "Enable Keyboard Shortcuts",
+        "Hint": "Enable keyboard shortcuts for adjusting brush height (Arrow keys, +/-)"
+      },
+      "DataManagementMenu": {
+        "Name": "Data Management",
+        "Label": "Manage Height Data",
+        "Hint": "Import, export, or clear height data for the current scene"
       }
     },
     "Controls": {
@@ -22,7 +35,8 @@
       "CurrentBrush": "Current Brush",
       "CustomHeight": "Custom Height",
       "KeyboardHint": "Use arrow keys and +/- to adjust height",
-      "ExceptionList": "Flying Units Exception List"
+      "ExceptionList": "Flying Units Exception List",
+      "PaintHeight": "Paint Height"
     },
     "Tooltips": {
       "ActivateEditor": "Activate height editor mode",
@@ -47,14 +61,39 @@
         "AddException": "Add Exception",
         "RemoveException": "Remove Exception",
         "NoTokenSelected": "No token selected",
-        "NoExceptions": "No flying units configured"
+        "NoExceptions": "No flying units configured",
+        "TokenAddedToList": "{tokenName} added to flying units exception list",
+        "TokenRemovedFromList": "Token removed from exception list"
+      },
+      "ClearConfirm": {
+        "Title": "Clear All Heights",
+        "Content": "Are you sure you want to clear all grid heights? This action cannot be undone."
       }
     },
     "DataManagement": {
-      "Title": "Data Management",
-      "ExportData": "Export Data",
-      "ImportData": "Import Data",
-      "ClearAll": "Clear All"
+      "Title": "Map Height Data Management",
+      "Header": "Map Height Data Management",
+      "Description": "Manage height data for the current scene",
+      "Statistics": {
+        "Title": "Current Scene Statistics",
+        "GridHeights": "Grid Heights:",
+        "ExceptionTokens": "Exception Tokens:"
+      },
+      "Operations": {
+        "Title": "Data Operations",
+        "Export": {
+          "Button": "Export Data",
+          "Description": "Save height data to a JSON file"
+        },
+        "Import": {
+          "Button": "Import Data",
+          "Description": "Load height data from a JSON file"
+        },
+        "Clear": {
+          "Button": "Clear All Data",
+          "Description": "Remove all height data (cannot be undone)"
+        }
+      }
     },
     "Help": {
       "Title": "How to Use",
@@ -72,7 +111,12 @@
       "TokenExceptionAdded": "Token added to flying units exception list",
       "TokenExceptionRemoved": "Token removed from flying units exception list",
       "ErrorSavingData": "Error saving height data",
-      "ErrorLoadingData": "Error loading height data"
+      "ErrorLoadingData": "Error loading height data",
+      "DataExported": "Height data exported successfully",
+      "DataImported": "Height data imported successfully",
+      "DataImportFailed": "Failed to import height data",
+      "InvalidFileFormat": "Invalid file format",
+      "AllHeightsCleared": "All grid heights cleared"
     },
     "BrushDisplay": {
       "Title": "Height Brush",

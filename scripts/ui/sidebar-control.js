@@ -302,18 +302,18 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
    */
   async _onClearAll(event) {
     event.preventDefault();
-    
+
     const confirmed = await Dialog.confirm({
-      title: "Clear All Heights",
-      content: "<p>Are you sure you want to clear all grid heights? This action cannot be undone.</p>",
+      title: game.i18n.localize("MAP_HEIGHT.Dialog.ClearConfirm.Title"),
+      content: `<p>${game.i18n.localize("MAP_HEIGHT.Dialog.ClearConfirm.Content")}</p>`,
       yes: () => true,
       no: () => false
     });
-    
+
     if (confirmed) {
       this.heightManager.resetData();
       await this.heightManager.saveHeightData();
-      ui.notifications.info("All grid heights cleared");
+      ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.AllHeightsCleared"));
       this.render();
     }
   }
@@ -324,12 +324,12 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
    */
   _onExportData(event) {
     event.preventDefault();
-    
+
     const data = this.heightManager.exportData();
     const filename = `map-heights-${this.heightManager.scene.name.slugify()}-${Date.now()}.json`;
-    
+
     saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
-    ui.notifications.info("Height data exported successfully");
+    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.DataExported"));
   }
 
   /**
@@ -353,14 +353,14 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
         
         const success = await this.heightManager.importData(data);
         if (success) {
-          ui.notifications.info("Height data imported successfully");
+          ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.DataImported"));
           this.render();
         } else {
-          ui.notifications.error("Failed to import height data");
+          ui.notifications.error(game.i18n.localize("MAP_HEIGHT.Notifications.DataImportFailed"));
         }
       } catch (error) {
         console.error("Error importing height data:", error);
-        ui.notifications.error("Invalid file format");
+        ui.notifications.error(game.i18n.localize("MAP_HEIGHT.Notifications.InvalidFileFormat"));
       }
     };
     
@@ -382,7 +382,9 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
     
     for (const token of controlled) {
       await this.heightManager.addTokenException(token.document.id);
-      ui.notifications.info(`${token.document.name} added to flying units exception list`);
+      ui.notifications.info(game.i18n.format("MAP_HEIGHT.Dialog.ExceptionManagement.TokenAddedToList", {
+        tokenName: token.document.name
+      }));
     }
     
     this.render();
@@ -398,9 +400,9 @@ export default class MapHeightSidebar extends foundry.applications.api.Applicati
     const target = event.target.closest('[data-action="remove-exception"]');
     const tokenId = target.dataset.tokenId;
     const success = await this.heightManager.removeTokenException(tokenId);
-    
+
     if (success) {
-      ui.notifications.info("Token removed from exception list");
+      ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Dialog.ExceptionManagement.TokenRemovedFromList"));
       this.render();
     }
   }

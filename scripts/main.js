@@ -78,14 +78,14 @@ Hooks.on('getSceneControlButtons', (controls) => {
 
   const mapHeightControl = {
     name: "mapheight",
-    title: "Map Height Editor",
+    title: game.i18n.localize("MAP_HEIGHT.ModuleTitle"),
     icon: "fas fa-mountain",
     layer: "mapheight",
     activeTool: "brush",
     tools: [
       {
         name: "brush",
-        title: "Paint Height",
+        title: game.i18n.localize("MAP_HEIGHT.Controls.PaintHeight"),
         icon: "fas fa-paint-brush"
       }
     ]
@@ -121,8 +121,8 @@ async function registerCanvasLayer() {
 function registerModuleSettings() {
   // Enable/disable automatic height updates
   game.settings.register(MODULE_ID, "autoUpdateTokens", {
-    name: "Auto Update Token Heights",
-    hint: "Automatically update token elevations when they move to different height grids",
+    name: game.i18n.localize("MAP_HEIGHT.Settings.AutoUpdateTokens.Name"),
+    hint: game.i18n.localize("MAP_HEIGHT.Settings.AutoUpdateTokens.Hint"),
     scope: "world",
     config: true,
     type: Boolean,
@@ -131,8 +131,8 @@ function registerModuleSettings() {
 
   // Height visualization opacity
   game.settings.register(MODULE_ID, "overlayOpacity", {
-    name: "Height Overlay Opacity",
-    hint: "Opacity of the height number overlay (0-1)",
+    name: game.i18n.localize("MAP_HEIGHT.Settings.OverlayOpacity.Name"),
+    hint: game.i18n.localize("MAP_HEIGHT.Settings.OverlayOpacity.Hint"),
     scope: "client",
     config: true,
     type: Number,
@@ -155,8 +155,8 @@ function registerModuleSettings() {
 
   // Brush display visible
   game.settings.register(MODULE_ID, "brushDisplayVisible", {
-    name: "Show Brush Display",
-    hint: "Show the on-canvas brush height display when in edit mode",
+    name: game.i18n.localize("MAP_HEIGHT.Settings.BrushDisplayVisible.Name"),
+    hint: game.i18n.localize("MAP_HEIGHT.Settings.BrushDisplayVisible.Hint"),
     scope: "client",
     config: true,
     type: Boolean,
@@ -165,8 +165,8 @@ function registerModuleSettings() {
 
   // Keyboard shortcuts enabled
   game.settings.register(MODULE_ID, "keyboardShortcutsEnabled", {
-    name: "Enable Keyboard Shortcuts",
-    hint: "Enable keyboard shortcuts for adjusting brush height (Arrow keys, +/-)",
+    name: game.i18n.localize("MAP_HEIGHT.Settings.KeyboardShortcuts.Name"),
+    hint: game.i18n.localize("MAP_HEIGHT.Settings.KeyboardShortcuts.Hint"),
     scope: "client",
     config: true,
     type: Boolean,
@@ -175,9 +175,9 @@ function registerModuleSettings() {
 
   // Data management settings (buttons)
   game.settings.registerMenu(MODULE_ID, "dataManagement", {
-    name: "Data Management",
-    label: "Manage Height Data",
-    hint: "Import, export, or clear height data for the current scene",
+    name: game.i18n.localize("MAP_HEIGHT.Settings.DataManagementMenu.Name"),
+    label: game.i18n.localize("MAP_HEIGHT.Settings.DataManagementMenu.Label"),
+    hint: game.i18n.localize("MAP_HEIGHT.Settings.DataManagementMenu.Hint"),
     icon: "fas fa-database",
     type: DataManagementConfig,
     restricted: true
@@ -192,7 +192,7 @@ class DataManagementConfig extends FormApplication {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: "map-height-data-management",
-      title: "Map Height Data Management",
+      title: game.i18n.localize("MAP_HEIGHT.DataManagement.Title"),
       template: "modules/fvtt-map-height/templates/data-management.hbs",
       classes: ["map-height-config"],
       width: 500,
@@ -232,7 +232,7 @@ class DataManagementConfig extends FormApplication {
     const filename = `map-heights-${canvas.scene.name.slugify()}-${Date.now()}.json`;
 
     saveDataToFile(JSON.stringify(data, null, 2), "application/json", filename);
-    ui.notifications.info("Height data exported successfully");
+    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.DataExported"));
   }
 
   async _onImport() {
@@ -253,14 +253,14 @@ class DataManagementConfig extends FormApplication {
 
         const success = await heightManager.importData(data);
         if (success) {
-          ui.notifications.info("Height data imported successfully");
+          ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.DataImported"));
           this.render();
         } else {
-          ui.notifications.error("Failed to import height data");
+          ui.notifications.error(game.i18n.localize("MAP_HEIGHT.Notifications.DataImportFailed"));
         }
       } catch (error) {
         console.error("Error importing height data:", error);
-        ui.notifications.error("Invalid file format");
+        ui.notifications.error(game.i18n.localize("MAP_HEIGHT.Notifications.InvalidFileFormat"));
       }
     };
 
@@ -269,8 +269,8 @@ class DataManagementConfig extends FormApplication {
 
   async _onClear() {
     const confirmed = await Dialog.confirm({
-      title: "Clear All Heights",
-      content: "<p>Are you sure you want to clear all grid heights? This action cannot be undone.</p>",
+      title: game.i18n.localize("MAP_HEIGHT.Dialog.ClearConfirm.Title"),
+      content: `<p>${game.i18n.localize("MAP_HEIGHT.Dialog.ClearConfirm.Content")}</p>`,
       yes: () => true,
       no: () => false
     });
@@ -281,7 +281,7 @@ class DataManagementConfig extends FormApplication {
 
       heightManager.resetData();
       await heightManager.saveHeightData();
-      ui.notifications.info("All grid heights cleared");
+      ui.notifications.info(game.i18n.localize("MAP_HEIGHT.Notifications.AllHeightsCleared"));
       this.render();
     }
   }
