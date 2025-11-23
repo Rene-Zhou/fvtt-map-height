@@ -139,6 +139,12 @@
       "Minus": "Decrease height by 1",
       "Zero": "Set height to 0",
       "Hint": "Keyboard shortcuts only work when height edit mode is active and no input field is focused."
+    },
+    "RectangleFill": {
+      "FirstPointSelected": "First corner selected. Hold Shift and click another grid to fill rectangle.",
+      "RectangleFilled": "Rectangle area filled with current brush height.",
+      "SelectionCancelled": "Rectangle selection cancelled.",
+      "Hint": "Hold Shift and click two grids to fill a rectangular area"
     }
   }
 }

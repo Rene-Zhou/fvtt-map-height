@@ -13,28 +13,35 @@ export default class HeightOverlay extends PIXI.Container {
   
   constructor(heightManager) {
     super();
-    
+
     this.heightManager = heightManager;
     this.isVisible = false;
     this.gridElements = new Map(); // Map of grid key -> PIXI element
     this.opacity = 0.8;
-    
+
     // Performance optimization
     this.lastUpdate = 0;
     this.updateThreshold = 100; // Minimum milliseconds between updates
     this.viewportBounds = { left: 0, top: 0, right: 0, bottom: 0 };
-    
+
     // Drag painting state
     this.isDragging = false;
     this.dragStartGrid = null;
     this.lastDragGrid = null;
     this.paintedGrids = new Set(); // Track grids painted in current drag operation
-    
+
+    // Rectangle fill mode state
+    // 矩形填充模式状态
+    this.rectangleMode = false;
+    this.rectangleFirstPoint = null; // First corner of rectangle {x, y}
+    this.rectanglePreview = null; // PIXI.Graphics for preview rectangle
+    this.rectangleHighlight = null; // PIXI.Graphics for first point highlight
+
     // Grid parameters (will be updated from canvas)
     this.gridSize = 100;
     this.gridOffsetX = 0;
     this.gridOffsetY = 0;
-    
+
     this.initialize();
   }
 
@@ -64,16 +71,21 @@ export default class HeightOverlay extends PIXI.Container {
     // Listen for height changes
     Hooks.on(`${MODULE_ID}.gridHeightChanged`, this.onGridHeightChanged.bind(this));
     Hooks.on(`${MODULE_ID}.areaHeightChanged`, this.onAreaHeightChanged.bind(this));
-    
+
     // Listen for canvas pan/zoom
     Hooks.on('canvasPan', this.onCanvasTransform.bind(this));
     Hooks.on('canvasZoom', this.onCanvasTransform.bind(this));
-    
+
     // Listen for scene updates (including padding changes)
     Hooks.on('updateScene', this.onSceneUpdate.bind(this));
-    
+
     // Listen for settings changes
     Hooks.on('updateSetting', this.onSettingUpdate.bind(this));
+
+    // Listen for keyboard events (ESC to cancel rectangle selection)
+    // 监听键盘事件（ESC 键取消矩形选择）
+    this.boundOnKeyDown = this.onKeyDown.bind(this);
+    document.addEventListener('keydown', this.boundOnKeyDown);
   }
 
   /**
@@ -139,13 +151,17 @@ export default class HeightOverlay extends PIXI.Container {
    */
   hide() {
     if (!this.isVisible) return;
-    
+
     this.isVisible = false;
     this.visible = false;
-    
+
     // Clear all grid elements
     this.clearAllGrids();
-    
+
+    // Clear rectangle selection if active
+    // 清除矩形选择（如果激活）
+    this.clearRectangleSelection();
+
   }
 
   /**
@@ -382,21 +398,28 @@ export default class HeightOverlay extends PIXI.Container {
    */
   onGridPointerDown(gridX, gridY, event) {
     if (!this.isVisible || !window.MapHeightEditor) return;
-    
-    // Only handle left clicks (button 0), ignore right clicks (button 2) 
+
+    // Only handle left clicks (button 0), ignore right clicks (button 2)
     if (event.data.button !== 0) return;
-    
+
     event.stopPropagation();
-    
+
+    // Check if shift key is pressed for rectangle mode
+    // 检查是否按下 shift 键以启用矩形模式
+    if (event.data.originalEvent.shiftKey) {
+      this.handleRectangleClick(gridX, gridY);
+      return;
+    }
+
     // Start drag operation
     this.isDragging = true;
     this.dragStartGrid = { x: gridX, y: gridY };
     this.lastDragGrid = { x: gridX, y: gridY };
     this.paintedGrids.clear();
-    
+
     // Paint the initial grid
     this.paintGrid(gridX, gridY);
-    
+
     // Add global pointer listeners for drag handling
     canvas.app.stage.interactive = true;
     canvas.app.stage.on('pointerup', this.onGlobalPointerUp.bind(this));
@@ -507,6 +530,12 @@ export default class HeightOverlay extends PIXI.Container {
     if (element) {
       element.scale.set(1.1);
       element._background.alpha *= 1.5;
+    }
+
+    // Show rectangle preview if in rectangle mode with first point selected
+    // 如果在矩形模式且已选择第一个点，则显示矩形预览
+    if (this.rectangleMode && this.rectangleFirstPoint) {
+      this.drawRectanglePreview(gridX, gridY);
     }
   }
 
@@ -687,18 +716,229 @@ export default class HeightOverlay extends PIXI.Container {
   }
 
   /**
+   * Handle rectangle click - first or second point
+   * 处理矩形点击 - 第一个或第二个点
+   */
+  handleRectangleClick(gridX, gridY) {
+    if (!this.rectangleMode || !this.rectangleFirstPoint) {
+      // First point - start rectangle selection
+      // 第一个点 - 开始矩形选择
+      this.rectangleMode = true;
+      this.rectangleFirstPoint = { x: gridX, y: gridY };
+      this.highlightFirstPoint(gridX, gridY);
+
+      // Show notification
+      // 显示提示
+      ui.notifications.info(game.i18n.localize("MAP_HEIGHT.RectangleFill.FirstPointSelected"));
+    } else {
+      // Second point - fill rectangle
+      // 第二个点 - 填充矩形
+      this.fillRectangle(this.rectangleFirstPoint.x, this.rectangleFirstPoint.y, gridX, gridY);
+      this.clearRectangleSelection();
+
+      // Show notification
+      // 显示提示
+      ui.notifications.info(game.i18n.localize("MAP_HEIGHT.RectangleFill.RectangleFilled"));
+    }
+  }
+
+  /**
+   * Fill rectangle area with current brush height
+   * 用当前画笔高度填充矩形区域
+   */
+  fillRectangle(x1, y1, x2, y2) {
+    const currentHeight = window.MapHeightEditor.currentBrushHeight || 0;
+
+    // Calculate bounds
+    // 计算边界
+    const minX = Math.min(x1, x2);
+    const maxX = Math.max(x1, x2);
+    const minY = Math.min(y1, y2);
+    const maxY = Math.max(y1, y2);
+
+    // Fill all grids in rectangle
+    // 填充矩形内所有网格
+    const gridPositions = [];
+    for (let x = minX; x <= maxX; x++) {
+      for (let y = minY; y <= maxY; y++) {
+        this.heightManager.setGridHeight(x, y, currentHeight);
+        gridPositions.push({ x, y });
+
+        // Visual feedback for each grid
+        // 为每个网格提供视觉反馈
+        const element = this.gridElements.get(`${x},${y}`);
+        if (element) {
+          this.animateHeightChange(element);
+        }
+      }
+    }
+
+    // Fire area height changed hook
+    // 触发区域高度变化钩子
+    Hooks.callAll(`${MODULE_ID}.areaHeightChanged`, {
+      gridPositions,
+      height: currentHeight
+    });
+
+    console.log(`${MODULE_ID} | Filled rectangle (${minX},${minY}) to (${maxX},${maxY}) with height ${currentHeight}`);
+  }
+
+  /**
+   * Draw rectangle preview
+   * 绘制矩形预览
+   */
+  drawRectanglePreview(gridX, gridY) {
+    if (!this.rectangleFirstPoint) return;
+
+    // Remove old preview if exists
+    // 移除旧的预览
+    if (this.rectanglePreview) {
+      this.removeChild(this.rectanglePreview);
+      this.rectanglePreview.destroy();
+    }
+
+    // Create preview graphics
+    // 创建预览图形
+    this.rectanglePreview = new PIXI.Graphics();
+    this.rectanglePreview.lineStyle(3, 0xFFFF00, 0.8); // Yellow outline
+    this.rectanglePreview.beginFill(0xFFFF00, 0.1); // Transparent yellow fill
+
+    // Calculate rectangle bounds
+    // 计算矩形边界
+    const x1 = this.rectangleFirstPoint.x;
+    const y1 = this.rectangleFirstPoint.y;
+    const x2 = gridX;
+    const y2 = gridY;
+
+    const minX = Math.min(x1, x2);
+    const maxX = Math.max(x1, x2);
+    const minY = Math.min(y1, y2);
+    const maxY = Math.max(y1, y2);
+
+    // Draw rectangle in world coordinates
+    // 在世界坐标系中绘制矩形
+    const worldX = minX * this.gridSize + this.gridOffsetX;
+    const worldY = minY * this.gridSize + this.gridOffsetY;
+    const width = (maxX - minX + 1) * this.gridSize;
+    const height = (maxY - minY + 1) * this.gridSize;
+
+    this.rectanglePreview.drawRect(worldX, worldY, width, height);
+    this.rectanglePreview.endFill();
+
+    // Add to overlay
+    // 添加到覆盖层
+    this.addChild(this.rectanglePreview);
+  }
+
+  /**
+   * Highlight first point of rectangle selection
+   * 高亮矩形选择的第一个点
+   */
+  highlightFirstPoint(gridX, gridY) {
+    // Remove old highlight if exists
+    // 移除旧的高亮
+    if (this.rectangleHighlight) {
+      this.removeChild(this.rectangleHighlight);
+      this.rectangleHighlight.destroy();
+    }
+
+    // Create highlight graphics
+    // 创建高亮图形
+    this.rectangleHighlight = new PIXI.Graphics();
+    this.rectangleHighlight.lineStyle(4, 0x00FF00, 1); // Green outline
+    this.rectangleHighlight.beginFill(0x00FF00, 0.2); // Transparent green fill
+
+    // Draw highlight square
+    // 绘制高亮方块
+    const worldX = gridX * this.gridSize + this.gridOffsetX;
+    const worldY = gridY * this.gridSize + this.gridOffsetY;
+
+    this.rectangleHighlight.drawRect(worldX, worldY, this.gridSize, this.gridSize);
+    this.rectangleHighlight.endFill();
+
+    // Add to overlay
+    // 添加到覆盖层
+    this.addChild(this.rectangleHighlight);
+
+    // Pulsing animation
+    // 脉冲动画
+    const startTime = Date.now();
+    const animate = () => {
+      if (!this.rectangleHighlight || !this.rectangleMode || !this.rectangleFirstPoint) return;
+
+      const elapsed = Date.now() - startTime;
+      const pulse = Math.sin(elapsed / 200) * 0.3 + 0.7;
+      this.rectangleHighlight.alpha = pulse;
+
+      requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }
+
+  /**
+   * Clear rectangle selection
+   * 清除矩形选择
+   */
+  clearRectangleSelection() {
+    this.rectangleMode = false;
+    this.rectangleFirstPoint = null;
+
+    // Remove preview
+    // 移除预览
+    if (this.rectanglePreview) {
+      this.removeChild(this.rectanglePreview);
+      this.rectanglePreview.destroy();
+      this.rectanglePreview = null;
+    }
+
+    // Remove highlight
+    // 移除高亮
+    if (this.rectangleHighlight) {
+      this.removeChild(this.rectangleHighlight);
+      this.rectangleHighlight.destroy();
+      this.rectangleHighlight = null;
+    }
+  }
+
+  /**
+   * Handle keyboard events
+   * 处理键盘事件
+   */
+  onKeyDown(event) {
+    // Only handle ESC key when rectangle mode is active
+    // 仅在矩形模式激活时处理 ESC 键
+    if (event.key === 'Escape' && this.rectangleMode && this.rectangleFirstPoint) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.clearRectangleSelection();
+
+      // Show notification
+      // 显示提示
+      ui.notifications.info(game.i18n.localize("MAP_HEIGHT.RectangleFill.SelectionCancelled"));
+    }
+  }
+
+  /**
    * Destroy the overlay and cleanup
    * 销毁覆盖层并清理
    */
   destroy() {
     this.hide();
     this.clearAllGrids();
-    
+    this.clearRectangleSelection();
+
+    // Remove keyboard event listener
+    // 移除键盘事件监听器
+    if (this.boundOnKeyDown) {
+      document.removeEventListener('keydown', this.boundOnKeyDown);
+    }
+
     // Remove from canvas if still attached
     if (canvas.stage.children.includes(this)) {
       canvas.stage.removeChild(this);
     }
-    
+
     super.destroy();
     console.log(`${MODULE_ID} | Height overlay destroyed`);
   }
