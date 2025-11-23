@@ -1,49 +1,49 @@
 <form class="map-height-data-management">
   <header class="data-management-header">
-    <h2><i class="fas fa-database"></i> Map Height Data Management</h2>
-    <p class="hint">Manage height data for the current scene</p>
+    <h2><i class="fas fa-database"></i> {{localize "MAP_HEIGHT.DataManagement.Header"}}</h2>
+    <p class="hint">{{localize "MAP_HEIGHT.DataManagement.Description"}}</p>
   </header>
 
   <section class="data-stats">
-    <h3>Current Scene Statistics</h3>
+    <h3>{{localize "MAP_HEIGHT.DataManagement.Statistics.Title"}}</h3>
     <div class="stats-grid">
       <div class="stat-item">
         <i class="fas fa-th"></i>
-        <span class="stat-label">Grid Heights:</span>
+        <span class="stat-label">{{localize "MAP_HEIGHT.DataManagement.Statistics.GridHeights"}}</span>
         <span class="stat-value">{{stats.totalGrids}}</span>
       </div>
       <div class="stat-item">
         <i class="fas fa-plane"></i>
-        <span class="stat-label">Exception Tokens:</span>
+        <span class="stat-label">{{localize "MAP_HEIGHT.DataManagement.Statistics.ExceptionTokens"}}</span>
         <span class="stat-value">{{stats.exceptions}}</span>
       </div>
     </div>
   </section>
 
   <section class="data-actions">
-    <h3>Data Operations</h3>
+    <h3>{{localize "MAP_HEIGHT.DataManagement.Operations.Title"}}</h3>
 
     <button type="button" class="data-action-btn export" data-action="export">
       <i class="fas fa-download"></i>
       <div class="btn-content">
-        <strong>Export Data</strong>
-        <small>Save height data to a JSON file</small>
+        <strong>{{localize "MAP_HEIGHT.DataManagement.Operations.Export.Button"}}</strong>
+        <small>{{localize "MAP_HEIGHT.DataManagement.Operations.Export.Description"}}</small>
       </div>
     </button>
 
     <button type="button" class="data-action-btn import" data-action="import">
       <i class="fas fa-upload"></i>
       <div class="btn-content">
-        <strong>Import Data</strong>
-        <small>Load height data from a JSON file</small>
+        <strong>{{localize "MAP_HEIGHT.DataManagement.Operations.Import.Button"}}</strong>
+        <small>{{localize "MAP_HEIGHT.DataManagement.Operations.Import.Description"}}</small>
       </div>
     </button>
 
     <button type="button" class="data-action-btn clear danger" data-action="clear">
       <i class="fas fa-trash"></i>
       <div class="btn-content">
-        <strong>Clear All Data</strong>
-        <small>Remove all height data (cannot be undone)</small>
+        <strong>{{localize "MAP_HEIGHT.DataManagement.Operations.Clear.Button"}}</strong>
+        <small>{{localize "MAP_HEIGHT.DataManagement.Operations.Clear.Description"}}</small>
       </div>
     </button>
   </section>

@@ -14,6 +14,19 @@
       "DefaultBrushHeight": {
         "Name": "默认画笔高度",
         "Hint": "画笔工具的默认高度值"
+      },
+      "BrushDisplayVisible": {
+        "Name": "显示画笔显示器",
+        "Hint": "在编辑模式下显示画布上的画笔高度显示器"
+      },
+      "KeyboardShortcuts": {
+        "Name": "启用键盘快捷键",
+        "Hint": "启用调整画笔高度的键盘快捷键（方向键、+/-）"
+      },
+      "DataManagementMenu": {
+        "Name": "数据管理",
+        "Label": "管理高度数据",
+        "Hint": "导入、导出或清除当前场景的高度数据"
       }
     },
     "Controls": {
@@ -22,7 +35,8 @@
       "CurrentBrush": "当前画笔",
       "CustomHeight": "自定义高度",
       "KeyboardHint": "使用方向键和 +/- 键调整高度",
-      "ExceptionList": "飞行单位例外列表"
+      "ExceptionList": "飞行单位例外列表",
+      "PaintHeight": "绘制高度"
     },
     "Tooltips": {
       "ActivateEditor": "激活高度编辑器模式",
@@ -47,18 +61,43 @@
         "AddException": "添加例外",
         "RemoveException": "移除例外",
         "NoTokenSelected": "未选择Token",
-        "NoExceptions": "未配置飞行单位"
+        "NoExceptions": "未配置飞行单位",
+        "TokenAddedToList": "{tokenName} 已添加到飞行单位例外列表",
+        "TokenRemovedFromList": "Token已从例外列表中移除"
+      },
+      "ClearConfirm": {
+        "Title": "清除所有高度",
+        "Content": "您确定要清除所有网格高度吗？此操作无法撤销。"
       }
     },
     "DataManagement": {
-      "Title": "数据管理",
-      "ExportData": "导出数据",
-      "ImportData": "导入数据",
-      "ClearAll": "清除全部"
+      "Title": "地图高度数据管理",
+      "Header": "地图高度数据管理",
+      "Description": "管理当前场景的高度数据",
+      "Statistics": {
+        "Title": "当前场景统计",
+        "GridHeights": "网格高度：",
+        "ExceptionTokens": "例外Token："
+      },
+      "Operations": {
+        "Title": "数据操作",
+        "Export": {
+          "Button": "导出数据",
+          "Description": "将高度数据保存为JSON文件"
+        },
+        "Import": {
+          "Button": "导入数据",
+          "Description": "从JSON文件加载高度数据"
+        },
+        "Clear": {
+          "Button": "清除所有数据",
+          "Description": "删除所有高度数据（无法撤销）"
+        }
+      }
     },
     "Help": {
       "Title": "使用说明",
-      "Step1": "点击\"高度编辑模式\"以激活编辑功能",
+      "Step1": "点击"高度编辑模式"以激活编辑功能",
       "Step2": "从工具栏选择一个画笔高度",
       "Step3": "点击网格方块以设置其高度",
       "Step4": "Token会自动更新其高度值",
@@ -72,7 +111,12 @@
       "TokenExceptionAdded": "Token已添加到飞行单位例外列表",
       "TokenExceptionRemoved": "Token已从飞行单位例外列表中移除",
       "ErrorSavingData": "保存高度数据时出错",
-      "ErrorLoadingData": "加载高度数据时出错"
+      "ErrorLoadingData": "加载高度数据时出错",
+      "DataExported": "高度数据导出成功",
+      "DataImported": "高度数据导入成功",
+      "DataImportFailed": "导入高度数据失败",
+      "InvalidFileFormat": "无效的文件格式",
+      "AllHeightsCleared": "所有网格高度已清除"
     },
     "BrushDisplay": {
       "Title": "高度画笔",
