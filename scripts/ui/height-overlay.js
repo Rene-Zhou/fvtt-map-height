@@ -720,9 +720,27 @@ export default class HeightOverlay extends PIXI.Container {
    * 处理矩形点击 - 第一个或第二个点
    */
   handleRectangleClick(gridX, gridY) {
-    if (!this.rectangleMode || !this.rectangleFirstPoint) {
+    console.log(`${MODULE_ID} | Rectangle click at (${gridX}, ${gridY})`);
+    console.log(`${MODULE_ID} | Current state - rectangleMode: ${this.rectangleMode}, firstPoint:`, this.rectangleFirstPoint);
+
+    // Check if this is the first point or second point
+    // 检查这是第一个点还是第二个点
+    if (this.rectangleMode && this.rectangleFirstPoint) {
+      // Second point - fill rectangle
+      // 第二个点 - 填充矩形
+      console.log(`${MODULE_ID} | Filling rectangle from (${this.rectangleFirstPoint.x}, ${this.rectangleFirstPoint.y}) to (${gridX}, ${gridY})`);
+
+      this.fillRectangle(this.rectangleFirstPoint.x, this.rectangleFirstPoint.y, gridX, gridY);
+      this.clearRectangleSelection();
+
+      // Show notification
+      // 显示提示
+      ui.notifications.info(game.i18n.localize("MAP_HEIGHT.RectangleFill.RectangleFilled"));
+    } else {
       // First point - start rectangle selection
       // 第一个点 - 开始矩形选择
+      console.log(`${MODULE_ID} | Setting first point at (${gridX}, ${gridY})`);
+
       this.rectangleMode = true;
       this.rectangleFirstPoint = { x: gridX, y: gridY };
       this.highlightFirstPoint(gridX, gridY);
@@ -730,16 +748,9 @@ export default class HeightOverlay extends PIXI.Container {
       // Show notification
       // 显示提示
       ui.notifications.info(game.i18n.localize("MAP_HEIGHT.RectangleFill.FirstPointSelected"));
-    } else {
-      // Second point - fill rectangle
-      // 第二个点 - 填充矩形
-      this.fillRectangle(this.rectangleFirstPoint.x, this.rectangleFirstPoint.y, gridX, gridY);
-      this.clearRectangleSelection();
-
-      // Show notification
-      // 显示提示
-      ui.notifications.info(game.i18n.localize("MAP_HEIGHT.RectangleFill.RectangleFilled"));
     }
+
+    console.log(`${MODULE_ID} | New state - rectangleMode: ${this.rectangleMode}, firstPoint:`, this.rectangleFirstPoint);
   }
 
   /**
