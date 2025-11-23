@@ -493,12 +493,7 @@ export default class HeightOverlay extends PIXI.Container {
     // Remove global listeners
     canvas.app.stage.off('pointerup', this.onGlobalPointerUp.bind(this));
     canvas.app.stage.off('pointermove', this.onGlobalPointerMove.bind(this));
-    
-    // Show notification with painted count
-    if (this.paintedGrids.size > 1) {
-      ui.notifications.info(`Painted ${this.paintedGrids.size} grid squares`);
-    }
-    
+
     this.paintedGrids.clear();
   }
 
