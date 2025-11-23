@@ -545,6 +545,7 @@ export default class HeightOverlay extends PIXI.Container {
     // Show rectangle preview if in rectangle mode with first point selected
     // 如果在矩形模式且已选择第一个点，则显示矩形预览
     if (this.rectangleMode && this.rectangleFirstPoint) {
+      console.log(`${MODULE_ID} | Grid hover at (${gridX}, ${gridY}), drawing preview`);
       this.drawRectanglePreview(gridX, gridY);
     }
   }
@@ -824,10 +825,12 @@ export default class HeightOverlay extends PIXI.Container {
     this.rectanglePreview.lineStyle(3, 0xFFFF00, 0.8); // Yellow outline
     this.rectanglePreview.beginFill(0xFFFF00, 0.1); // Transparent yellow fill
 
-    // Make non-interactive so it doesn't block click events
-    // 设置为不可交互，这样不会阻挡点击事件
+    // Make completely non-interactive so it doesn't block click events
+    // 完全禁用交互，确保不会阻挡点击事件
     this.rectanglePreview.interactive = false;
     this.rectanglePreview.interactiveChildren = false;
+    this.rectanglePreview.eventMode = 'none'; // Completely disable event handling
+    this.rectanglePreview.hitArea = new PIXI.Rectangle(0, 0, 0, 0); // Empty hit area
 
     // Calculate rectangle bounds
     // 计算矩形边界
@@ -874,10 +877,12 @@ export default class HeightOverlay extends PIXI.Container {
     this.rectangleHighlight.lineStyle(4, 0x00FF00, 1); // Green outline
     this.rectangleHighlight.beginFill(0x00FF00, 0.2); // Transparent green fill
 
-    // Make non-interactive so it doesn't block click events
-    // 设置为不可交互，这样不会阻挡点击事件
+    // Make completely non-interactive so it doesn't block click events
+    // 完全禁用交互，确保不会阻挡点击事件
     this.rectangleHighlight.interactive = false;
     this.rectangleHighlight.interactiveChildren = false;
+    this.rectangleHighlight.eventMode = 'none'; // Completely disable event handling
+    this.rectangleHighlight.hitArea = new PIXI.Rectangle(0, 0, 0, 0); // Empty hit area
 
     // Draw highlight square
     // 绘制高亮方块
