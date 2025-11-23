@@ -22,6 +22,11 @@ A Foundry VTT module for editing map ground heights and automatically managing t
 ### Height Painting
 - **Click and Paint**: Click on grid squares to set their height
 - **Drag Painting**: Click and drag to paint multiple grid squares at once
+- **Rectangle Fill Mode**: Hold Shift and click two grid corners to fill entire rectangular areas
+  - First click sets the starting corner (highlighted in red)
+  - Second click sets the opposite corner and fills the rectangle
+  - Yellow preview rectangle shows the area that will be filled
+  - Press ESC to cancel rectangle selection
 - **Visual Overlay**: Color-coded overlay showing height values on the map
   - Blue: Height 0 (water level)
   - Green: Positive elevation
@@ -83,6 +88,11 @@ A Foundry VTT module for editing map ground heights and automatically managing t
 4. **Paint Heights**
    - Click on grid squares to set their height
    - Or click and drag to paint multiple squares at once
+   - **For large areas**: Hold Shift and click two grid corners to fill a rectangle
+     - First Shift+click selects the starting corner (red highlight)
+     - Second Shift+click fills the entire rectangle
+     - Hover over grids to see a yellow preview of the area
+     - Press ESC to cancel if you change your mind
    - The height overlay updates in real-time
 
 5. **Exit Edit Mode**

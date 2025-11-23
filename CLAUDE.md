@@ -27,6 +27,7 @@ A Foundry VTT v12.343+ module that enables Game Masters to paint ground heights 
 - **Canvas Brush Display**: Floating, draggable window showing current brush height with quick adjustment buttons
 - **Keyboard Shortcuts**: Arrow keys, +/-, and 0 key for rapid height adjustments
 - **Height Painting**: Click or drag to paint height values on grid squares
+- **Rectangle Fill Mode**: Hold Shift and click two corners to fill entire rectangular areas with current brush height
 - **Automatic Token Elevation**: Tokens automatically update elevation when moving
 - **Automatic Flying Detection**: D&D 5e fly speed detection, active effects parsing, token status detection
 - **Visual Overlay**: PIXI-based canvas overlay showing height values with color coding
@@ -123,8 +124,16 @@ fvtt-map-height/
   heightManager: HeightManager,   // Singleton instance
   tokenAutomation: TokenAutomation,
   sidebar: MapHeightSidebar,
-  heightOverlay: HeightOverlay,
+  heightOverlay: HeightOverlay,   // Contains rectangle mode state
   DebugHelper: DebugHelper        // Only in debug mode
+}
+
+// HeightOverlay Rectangle Mode State
+{
+  rectangleMode: boolean,                    // Rectangle selection active
+  rectangleFirstPoint: {x, y} | null,       // First corner position
+  rectanglePreview: PIXI.Graphics | null,   // Yellow preview rectangle
+  rectangleHighlight: PIXI.Graphics | null  // Red first point highlight
 }
 
 // Persistent Storage (scene.flags["fvtt-map-height"].heightData)
@@ -307,6 +316,11 @@ class MapHeightSidebar extends foundry.applications.api.ApplicationV2 {
 **Key Features**:
 - **Viewport Culling**: Only renders visible grids (viewport + 2 grid buffer)
 - **Drag Painting**: Click and drag to paint multiple grids
+- **Rectangle Fill Mode**: Shift+click two corners to fill rectangular areas
+  - First Shift+click sets starting corner (red highlight)
+  - Hover shows yellow preview rectangle
+  - Second Shift+click fills entire area
+  - ESC key cancels selection
 - **Color Coding**:
   - Blue (#4FC3F7): Height 0 (water level)
   - Green (#81C784): Positive elevation
@@ -321,9 +335,17 @@ cullOffscreenElements()
 calculateViewportBounds() -> {left, top, right, bottom}
 
 // Interaction
-onGridPointerDown(x, y, event)
+onGridPointerDown(x, y, event)  // Detects Shift key for rectangle mode
 paintGrid(x, y)
 onGlobalPointerMove(event)  // Drag painting
+
+// Rectangle Fill Mode
+handleRectangleClick(gridX, gridY)  // Handle Shift+click
+fillRectangle(x1, y1, x2, y2)  // Fill rectangular area
+drawRectanglePreview(gridX, gridY)  // Show yellow preview
+highlightFirstPoint(gridX, gridY)  // Show red highlight
+clearRectangleSelection()  // Cancel or reset
+onKeyDown(event)  // ESC to cancel
 
 // Synchronization
 updateGridParameters()  // Sync with HeightManager
@@ -916,6 +938,99 @@ shouldUpdateToken(tokenDocument) {
 }
 ```
 
+### Implementing Rectangle Fill Mode (Example)
+
+**Files modified**: `height-overlay.js`, `lang/en.json`, `lang/cn.json`
+
+This is a real example from the codebase showing how to add a complex interaction feature:
+
+1. **Add state variables** (constructor):
+```javascript
+// Rectangle fill mode state
+this.rectangleMode = false;
+this.rectangleFirstPoint = null; // {x, y}
+this.rectanglePreview = null; // PIXI.Graphics
+this.rectangleHighlight = null; // PIXI.Graphics
+```
+
+2. **Detect modifier key in pointer event**:
+```javascript
+onGridPointerDown(gridX, gridY, event) {
+  // Check for Shift key
+  if (event.data.originalEvent && event.data.originalEvent.shiftKey) {
+    this.handleRectangleClick(gridX, gridY);
+    return;
+  }
+  // Normal drag painting logic...
+}
+```
+
+3. **Implement two-click selection**:
+```javascript
+handleRectangleClick(gridX, gridY) {
+  if (this.rectangleMode && this.rectangleFirstPoint) {
+    // Second click - fill rectangle
+    this.fillRectangle(this.rectangleFirstPoint.x, this.rectangleFirstPoint.y, gridX, gridY);
+    this.clearRectangleSelection();
+  } else {
+    // First click - start selection
+    this.rectangleMode = true;
+    this.rectangleFirstPoint = { x: gridX, y: gridY };
+    this.highlightFirstPoint(gridX, gridY);
+  }
+}
+```
+
+4. **Add visual feedback** (preview on hover):
+```javascript
+onGridHover(gridX, gridY, event) {
+  if (this.rectangleMode && this.rectangleFirstPoint) {
+    this.drawRectanglePreview(gridX, gridY);
+  }
+}
+
+drawRectanglePreview(gridX, gridY) {
+  // Create non-interactive PIXI.Graphics
+  this.rectanglePreview = new PIXI.Graphics();
+  this.rectanglePreview.lineStyle(3, 0xFFFF00, 0.8);
+  this.rectanglePreview.beginFill(0xFFFF00, 0.1);
+
+  // Critical: prevent blocking click events
+  this.rectanglePreview.interactive = false;
+  this.rectanglePreview.eventMode = 'none';
+  this.rectanglePreview.hitArea = new PIXI.Rectangle(0, 0, 0, 0);
+
+  // Draw rectangle from first point to hover point
+  // ... (calculate bounds and draw)
+}
+```
+
+5. **Add ESC key cancellation**:
+```javascript
+onKeyDown(event) {
+  if (event.key === 'Escape' && this.rectangleMode) {
+    this.clearRectangleSelection();
+    ui.notifications.info(game.i18n.localize("MAP_HEIGHT.RectangleFill.SelectionCancelled"));
+  }
+}
+```
+
+6. **Add translations** (lang/en.json):
+```json
+"RectangleFill": {
+  "FirstPointSelected": "First corner selected. Hold Shift and click another grid to fill rectangle.",
+  "RectangleFilled": "Rectangle area filled with current brush height.",
+  "SelectionCancelled": "Rectangle selection cancelled."
+}
+```
+
+**Key Lessons**:
+- Make preview elements non-interactive (`eventMode = 'none'`) to avoid blocking clicks
+- Use `event.data.originalEvent.shiftKey` to detect modifier keys
+- Provide visual feedback at each step (highlight, preview, notifications)
+- Allow cancellation (ESC key)
+- Fire custom hooks for extensibility (`fvtt-map-height.areaHeightChanged`)
+
 ### Adding Debug Commands
 
 **Files to modify**: `debug-helper.js`
@@ -1181,6 +1296,11 @@ When making changes, test:
 1. **Height Painting**
    - [ ] Single grid click works
    - [ ] Drag painting works
+   - [ ] Rectangle fill mode works (Shift+click two corners)
+   - [ ] First point highlight displays (red)
+   - [ ] Preview rectangle displays correctly (yellow)
+   - [ ] ESC cancels rectangle selection
+   - [ ] Rectangle fills all grids correctly
    - [ ] Custom height input works
    - [ ] Visual overlay updates
 
@@ -1231,6 +1351,7 @@ console.timeEnd("render");
 | Memory leak | PIXI elements not destroyed | Call `destroy({ children: true })` |
 | Drag painting broken | Event listener not cleaned up | Remove global listeners on drag end |
 | Padding calculation wrong | Using pixels instead of grids | Convert padding to grid units first |
+| Rectangle preview blocks clicks | Preview element is interactive | Set `eventMode = 'none'` and empty `hitArea` |
 
 ---
 
