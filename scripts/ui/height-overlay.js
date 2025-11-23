@@ -404,22 +404,12 @@ export default class HeightOverlay extends PIXI.Container {
 
     event.stopPropagation();
 
-    // Debug: log all event details
-    // 调试：记录所有事件详情
-    console.log(`${MODULE_ID} | Grid pointer down at (${gridX}, ${gridY})`);
-    console.log(`${MODULE_ID} | Event data:`, event.data);
-    console.log(`${MODULE_ID} | Original event:`, event.data.originalEvent);
-    console.log(`${MODULE_ID} | Shift key pressed:`, event.data.originalEvent?.shiftKey);
-
     // Check if shift key is pressed for rectangle mode
     // 检查是否按下 shift 键以启用矩形模式
     if (event.data.originalEvent && event.data.originalEvent.shiftKey) {
-      console.log(`${MODULE_ID} | Shift key detected, calling handleRectangleClick`);
       this.handleRectangleClick(gridX, gridY);
       return;
     }
-
-    console.log(`${MODULE_ID} | No shift key, starting drag operation`);
 
     // Start drag operation
     this.isDragging = true;
@@ -545,7 +535,6 @@ export default class HeightOverlay extends PIXI.Container {
     // Show rectangle preview if in rectangle mode with first point selected
     // 如果在矩形模式且已选择第一个点，则显示矩形预览
     if (this.rectangleMode && this.rectangleFirstPoint) {
-      console.log(`${MODULE_ID} | Grid hover at (${gridX}, ${gridY}), drawing preview`);
       this.drawRectanglePreview(gridX, gridY);
     }
   }
@@ -731,16 +720,11 @@ export default class HeightOverlay extends PIXI.Container {
    * 处理矩形点击 - 第一个或第二个点
    */
   handleRectangleClick(gridX, gridY) {
-    console.log(`${MODULE_ID} | Rectangle click at (${gridX}, ${gridY})`);
-    console.log(`${MODULE_ID} | Current state - rectangleMode: ${this.rectangleMode}, firstPoint:`, this.rectangleFirstPoint);
-
     // Check if this is the first point or second point
     // 检查这是第一个点还是第二个点
     if (this.rectangleMode && this.rectangleFirstPoint) {
       // Second point - fill rectangle
       // 第二个点 - 填充矩形
-      console.log(`${MODULE_ID} | Filling rectangle from (${this.rectangleFirstPoint.x}, ${this.rectangleFirstPoint.y}) to (${gridX}, ${gridY})`);
-
       this.fillRectangle(this.rectangleFirstPoint.x, this.rectangleFirstPoint.y, gridX, gridY);
       this.clearRectangleSelection();
 
@@ -750,8 +734,6 @@ export default class HeightOverlay extends PIXI.Container {
     } else {
       // First point - start rectangle selection
       // 第一个点 - 开始矩形选择
-      console.log(`${MODULE_ID} | Setting first point at (${gridX}, ${gridY})`);
-
       this.rectangleMode = true;
       this.rectangleFirstPoint = { x: gridX, y: gridY };
       this.highlightFirstPoint(gridX, gridY);
@@ -760,8 +742,6 @@ export default class HeightOverlay extends PIXI.Container {
       // 显示提示
       ui.notifications.info(game.i18n.localize("MAP_HEIGHT.RectangleFill.FirstPointSelected"));
     }
-
-    console.log(`${MODULE_ID} | New state - rectangleMode: ${this.rectangleMode}, firstPoint:`, this.rectangleFirstPoint);
   }
 
   /**
@@ -801,8 +781,6 @@ export default class HeightOverlay extends PIXI.Container {
       gridPositions,
       height: currentHeight
     });
-
-    console.log(`${MODULE_ID} | Filled rectangle (${minX},${minY}) to (${maxX},${maxY}) with height ${currentHeight}`);
   }
 
   /**
