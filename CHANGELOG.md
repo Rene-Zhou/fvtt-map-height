@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated module.json URLs to point to correct GitHub repository
 
-## [1.0.0] - 2024
+## [1.0.0] - 2025-11-24
 
 ### Added
 - Initial release of Map Height Editor module
