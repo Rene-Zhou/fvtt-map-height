@@ -11,10 +11,14 @@ jobs:
 
     permissions:
       contents: write
+      packages: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Extract version from tag
         id: get_version
@@ -105,7 +109,7 @@ jobs:
           echo "✅ Generated release notes"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ steps.get_version.outputs.TAG }}
           body_path: release_notes.txt
@@ -114,8 +118,9 @@ jobs:
             module.json
           draft: false
           prerelease: ${{ contains(steps.get_version.outputs.TAG, 'beta') || contains(steps.get_version.outputs.TAG, 'alpha') }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_unmatched_files: true
+          generate_release_notes: false
 
       - name: Release Summary
         run: |
