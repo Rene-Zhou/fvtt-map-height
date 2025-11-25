@@ -9,11 +9,11 @@
 ### 方法1: 清单URL
 1. 在Foundry VTT中，转到 **附加模组**
 2. 点击 **安装模组**
-3. 粘贴清单URL: `https://github.com/your-username/fvtt-map-height/releases/latest/download/module.json`
+3. 粘贴清单URL: `https://github.com/Rene-Zhou/fvtt-map-height/releases/latest/download/module.json`
 4. 点击 **安装**
 
 ### 方法2: 手动安装
-1. 从 [发布页面](https://github.com/your-username/fvtt-map-height/releases) 下载最新版本
+1. 从 [发布页面](https://github.com/Rene-Zhou/fvtt-map-height/releases) 下载最新版本
 2. 将ZIP文件解压到Foundry的 `Data/modules` 目录
 3. 重启Foundry VTT
 4. 在世界中启用该模组

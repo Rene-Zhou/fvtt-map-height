@@ -9,11 +9,11 @@ A Foundry VTT module for editing map ground heights and automatically managing t
 ### Method 1: Manifest URL
 1. In Foundry VTT, go to **Add-on Modules**
 2. Click **Install Module**
-3. Paste the manifest URL: `https://github.com/your-username/fvtt-map-height/releases/latest/download/module.json`
+3. Paste the manifest URL: `https://github.com/Rene-Zhou/fvtt-map-height/releases/latest/download/module.json`
 4. Click **Install**
 
 ### Method 2: Manual Installation
-1. Download the latest release from the [Releases Page](https://github.com/your-username/fvtt-map-height/releases)
+1. Download the latest release from the [Releases Page](https://github.com/Rene-Zhou/fvtt-map-height/releases)
 2. Extract the ZIP file to your Foundry `Data/modules` directory
 3. Restart Foundry VTT
 4. Enable the module in your world
