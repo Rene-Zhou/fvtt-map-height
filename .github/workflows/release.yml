@@ -109,18 +109,26 @@ jobs:
           echo "✅ Generated release notes"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Release ${{ steps.get_version.outputs.TAG }}
-          body_path: release_notes.txt
-          files: |
-            module.zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.get_version.outputs.TAG }}"
+
+          # Determine if this is a prerelease
+          PRERELEASE_FLAG=""
+          if [[ "$TAG" == *"beta"* ]] || [[ "$TAG" == *"alpha"* ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+
+          # Create release using gh CLI
+          gh release create "$TAG" \
+            --title "Release $TAG" \
+            --notes-file release_notes.txt \
+            $PRERELEASE_FLAG \
+            module.zip \
             module.json
-          draft: false
-          prerelease: ${{ contains(steps.get_version.outputs.TAG, 'beta') || contains(steps.get_version.outputs.TAG, 'alpha') }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fail_on_unmatched_files: true
-          generate_release_notes: false
+
+          echo "✅ GitHub release created successfully"
 
       - name: Release Summary
         run: |
