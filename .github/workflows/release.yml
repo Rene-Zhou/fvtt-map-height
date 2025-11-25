@@ -1,0 +1,128 @@
+name: Release Module
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Verify version matches module.json
+        run: |
+          MODULE_VERSION=$(jq -r '.version' module.json)
+          TAG_VERSION="${{ steps.get_version.outputs.VERSION }}"
+
+          if [ "$MODULE_VERSION" != "$TAG_VERSION" ]; then
+            echo "Error: Version mismatch!"
+            echo "module.json version: $MODULE_VERSION"
+            echo "Git tag version: $TAG_VERSION"
+            exit 1
+          fi
+
+          echo "✅ Version verification passed: $MODULE_VERSION"
+
+      - name: Extract repository owner and name
+        id: repo_info
+        run: |
+          echo "REPO_OWNER=$(echo ${{ github.repository }} | cut -d'/' -f1)" >> $GITHUB_OUTPUT
+          echo "REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)" >> $GITHUB_OUTPUT
+
+      - name: Update module.json with release URLs
+        run: |
+          REPO_OWNER="${{ steps.repo_info.outputs.REPO_OWNER }}"
+          REPO_NAME="${{ steps.repo_info.outputs.REPO_NAME }}"
+
+          # Create a temporary file with updated URLs
+          jq --arg repo_owner "$REPO_OWNER" \
+             --arg repo_name "$REPO_NAME" \
+             '.url = "https://github.com/\($repo_owner)/\($repo_name)" |
+              .manifest = "https://github.com/\($repo_owner)/\($repo_name)/releases/latest/download/module.json" |
+              .download = "https://github.com/\($repo_owner)/\($repo_name)/releases/latest/download/module.zip" |
+              .readme = "https://github.com/\($repo_owner)/\($repo_name)/blob/main/README.md" |
+              .bugs = "https://github.com/\($repo_owner)/\($repo_name)/issues" |
+              .changelog = "https://github.com/\($repo_owner)/\($repo_name)/blob/main/CHANGELOG.md"' \
+              module.json > module.json.tmp
+
+          mv module.json.tmp module.json
+
+          echo "✅ Updated module.json with release URLs"
+          cat module.json
+
+      - name: Create module archive
+        run: |
+          # Create zip file with all necessary files
+          zip -r module.zip \
+            module.json \
+            scripts/ \
+            styles/ \
+            templates/ \
+            lang/ \
+            LICENSE \
+            README.md \
+            README_CN.md
+
+          echo "✅ Created module.zip"
+          echo "Archive contents:"
+          unzip -l module.zip
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          VERSION="${{ steps.get_version.outputs.VERSION }}"
+
+          # Check if CHANGELOG.md exists and extract notes for this version
+          if [ -f "CHANGELOG.md" ]; then
+            # Try to extract the section for this version
+            NOTES=$(sed -n "/## \[${VERSION}\]/,/## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
+
+            if [ -z "$NOTES" ]; then
+              # Fallback to generic message if version not found in changelog
+              NOTES="Release version ${VERSION}"$'\n\n'"See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details."
+            fi
+          else
+            # If no CHANGELOG.md, use generic message
+            NOTES="Release version ${VERSION}"
+          fi
+
+          # Save to file for multiline handling
+          echo "$NOTES" > release_notes.txt
+
+          echo "✅ Generated release notes"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.get_version.outputs.TAG }}
+          body_path: release_notes.txt
+          files: |
+            module.zip
+            module.json
+          draft: false
+          prerelease: ${{ contains(steps.get_version.outputs.TAG, 'beta') || contains(steps.get_version.outputs.TAG, 'alpha') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release Summary
+        run: |
+          echo "🎉 Release ${{ steps.get_version.outputs.TAG }} created successfully!"
+          echo ""
+          echo "📦 Assets uploaded:"
+          echo "  - module.zip"
+          echo "  - module.json"
+          echo ""
+          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.TAG }}"
